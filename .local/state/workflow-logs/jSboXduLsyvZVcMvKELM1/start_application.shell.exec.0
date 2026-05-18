@@ -1,0 +1,21 @@
+[1G[0K⠙[1G[0K
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+[1G[0K⠙[1G[0K=== STARTUP DIAGNOSTICS ===
+NODE_ENV: development
+PORT: 5000
+DATABASE_URL: SET
+SESSION_SECRET: SET
+TWILIO_ACCOUNT_SID: SET
+TWILIO_AUTH_TOKEN: SET
+TWILIO_VERIFY_SERVICE_SID: SET
+ADMIN_EMAIL: SET
+ADMIN_PASSWORD: SET
+=== END DIAGNOSTICS ===
+[BOOTSTRAP] Admin bootstrap ensured - updated existing admin: admin@hfniconnect.com
+10:39:06 AM [express] serving on port 5000
+[SCHEDULER] Starting celebration scheduler (runs daily at 08:00 Europe/London)
+[SCHEDULER] Current London time: 11:39:06
+[SCHEDULER] Running daily celebration check for Sunday, 10 May 2026
+[SCHEDULER] Celebration check completed for Sunday, 10 May 2026

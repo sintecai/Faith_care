@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify - HFNI Connect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="login-hero">
+  <div class="login-card">
+    <div class="login-card-header">
+      <h1>Verify Your Phone</h1>
+      <p>Enter the code sent to <%= typeof phone !== 'undefined' ? phone : '' %></p>
+    </div>
+    <div class="login-card-body">
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+      <% if (typeof message !== 'undefined' && message) { %>
+        <div class="alert alert-success"><%= message %></div>
+      <% } %>
+      
+      <form method="POST" action="/verify">
+        <input type="hidden" name="phone" value="<%= typeof phone !== 'undefined' ? phone : '' %>">
+        <% if (typeof eventId !== 'undefined' && eventId) { %>
+          <input type="hidden" name="eventId" value="<%= eventId %>">
+        <% } %>
+        <% if (typeof token !== 'undefined' && token) { %>
+          <input type="hidden" name="token" value="<%= token %>">
+        <% } %>
+        
+        <div class="form-group">
+          <label class="form-label" for="code">Verification Code</label>
+          <input 
+            type="text" 
+            id="code" 
+            name="code" 
+            class="form-control text-center" 
+            placeholder="000000"
+            maxlength="6"
+            pattern="[0-9]{6}"
+            required
+            autofocus
+            autocomplete="one-time-code"
+            data-testid="input-otp"
+          >
+        </div>
+        
+        <button type="submit" class="btn btn-primary btn-lg btn-block" data-testid="button-verify">
+          Verify
+        </button>
+      </form>
+      
+      <div class="text-center mt-4">
+        <a href="/login<%= (typeof eventId !== 'undefined' && eventId) ? '?eventId=' + eventId + '&token=' + (typeof token !== 'undefined' ? token : '') : '' %>" class="btn btn-ghost text-sm" data-testid="link-back-login">
+          Use a different phone number
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

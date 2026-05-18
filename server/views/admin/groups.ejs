@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ministry Groups - HFNI Connect Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="admin-layout">
+  <%- include('./partials/sidebar', { currentPage: typeof nameFilter !== 'undefined' && nameFilter ? nameFilter : 'groups' }) %>
+  
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1 class="text-xl font-semibold"><%= typeof nameFilter !== 'undefined' && nameFilter ? (nameFilter === 'elders' ? 'Elders & Ministers' : nameFilter === 'tnt' ? 'TNT' : nameFilter === 'jesus-school' ? 'Jesus School' : nameFilter === 'core-leaders' ? 'Core Leaders' : 'Ministry Groups') : 'Ministry Groups' %></h1>
+      <div class="text-sm text-secondary"><%= typeof staffName !== 'undefined' ? staffName : 'Admin' %></div>
+    </header>
+    
+    <div class="admin-content">
+      <div class="flex justify-between items-center gap-4 mb-6 flex-wrap">
+        <div class="flex gap-2">
+          <a href="/admin/groups" class="btn <%= currentFilter === 'active' ? 'btn-primary' : 'btn-secondary' %> btn-sm" data-testid="filter-active">Active</a>
+          <a href="/admin/groups?show=archived" class="btn <%= currentFilter === 'archived' ? 'btn-primary' : 'btn-secondary' %> btn-sm" data-testid="filter-archived">Archived</a>
+          <a href="/admin/groups?show=all" class="btn <%= currentFilter === 'all' ? 'btn-primary' : 'btn-secondary' %> btn-sm" data-testid="filter-all">All</a>
+        </div>
+        <a href="/admin/groups/new" class="btn btn-primary" data-testid="button-add-group">Add Group</a>
+      </div>
+      
+      <% if (typeof message !== 'undefined' && message) { %>
+        <div class="alert alert-success"><%= message %></div>
+      <% } %>
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+      
+      <% if (typeof groups === 'undefined' || groups.length === 0) { %>
+        <div class="empty-state">
+          <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          <p>No <%= currentFilter === 'archived' ? 'archived ' : currentFilter === 'all' ? '' : 'active ' %>ministry groups found</p>
+          <% if (currentFilter === 'active') { %>
+            <a href="/admin/groups/new" class="btn btn-primary mt-4">Add First Group</a>
+          <% } %>
+        </div>
+      <% } else { %>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Members</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% groups.forEach(function(g) { %>
+              <tr data-testid="row-group-<%= g.id %>">
+                <td><%= g.name %></td>
+                <td><%= g.description || '-' %></td>
+                <td><%= g.memberCount %></td>
+                <td>
+                  <% if (g.isActive) { %>
+                    <span class="badge badge-success" data-testid="badge-active-<%= g.id %>">Active</span>
+                  <% } else { %>
+                    <span class="badge badge-secondary" data-testid="badge-archived-<%= g.id %>">Archived</span>
+                  <% } %>
+                </td>
+                <td>
+                  <div class="flex gap-2 flex-wrap">
+                    <a href="/admin/groups/<%= g.id %>/members" class="btn btn-ghost btn-sm" data-testid="button-members-<%= g.id %>">Members</a>
+                    <a href="/admin/groups/<%= g.id %>/edit" class="btn btn-secondary btn-sm" data-testid="button-edit-<%= g.id %>">Edit</a>
+                    <% if (g.isActive) { %>
+                      <form method="POST" action="/admin/groups/<%= g.id %>/archive" onsubmit="return confirm('Are you sure you want to archive this group?');">
+                        <button type="submit" class="btn btn-warning btn-sm" data-testid="button-archive-<%= g.id %>">Archive</button>
+                      </form>
+                    <% } else { %>
+                      <form method="POST" action="/admin/groups/<%= g.id %>/restore">
+                        <button type="submit" class="btn btn-success btn-sm" data-testid="button-restore-<%= g.id %>">Restore</button>
+                      </form>
+                    <% } %>
+                  </div>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </main>
+</div>
+</body>
+</html>

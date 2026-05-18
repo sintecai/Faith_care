@@ -1,0 +1,113 @@
+Continue from the existing HFNI Connect codebase. The original prompt requirements remain VALID. Do NOT undo existing work. Fix these specific gaps end-to-end (admin + member), using the existing DB tables and adding safe migrations only if fields are missing.
+
+==================================================
+A) ADDRESS FIELDS — MEMBERS + FAMILIES (REQUIRED)
+==================================================
+Add full “standard” address fields for BOTH Members and Families and display them in Admin forms.
+
+Standard Address fields (same set for members + families):
+- address_line1 (text, required)
+- address_line2 (text, optional)
+- city (text, required)
+- county (text, optional)
+- postcode (text, required)
+- country (text, required; default "UK" if church is NI)
+
+Tasks:
+1) Database:
+- If members table currently only has a single address column, keep it but ADD the structured fields above (safe migration).
+- If families table is missing address fields, ADD the structured fields above (safe migration).
+- Do NOT drop columns; only add columns if missing.
+
+2) Admin -> Members:
+- Update Add/Edit Member forms to include these address fields.
+- Add a checkbox/toggle: “Same as Family Address” (optional)
+  - If enabled and member belongs to a family, member address fields can auto-fill from family.
+
+3) Admin -> Families:
+- Update Add/Edit Family forms to include these address fields.
+
+==================================================
+B) FAMILIES MODULE — FULL FAMILY PROFILE (REQUIRED)
+==================================================
+Right now Families only show due details. Upgrade it to full family management:
+
+Admin -> Families must have:
+1) Family Details:
+- family_name
+- prayer_cell dropdown (units renamed as prayer cells in UI)
+- full family address fields (from section A)
+- dues_amount, dues_frequency, next_due_date, dues_notes
+
+2) Family Members management inside Family page:
+- Add existing members to this family (search/select)
+- Set role_in_family (head/spouse/child/other)
+- Set primary_member_id (primary contact)
+- Remove member from family (delete from family_members)
+- Show the family members list with name, phone, role
+
+Rules:
+- Use family_members join table if present; create it if missing.
+- Ensure member assignment does not break if member already belongs to a different family (either allow multi-family = NO, or enforce one family per member; choose one and implement consistently. Preferred: one family per member for this MVP).
+- All queries must be scoped by church_id.
+
+==================================================
+C) MEMBER AREA — SHOW THESE MODULES (REQUIRED)
+==================================================
+Announcements, Notifications, Gallery, Testimonies exist (or were created) but are NOT visible/working for members.
+
+Implement and link these pages for MEMBER role:
+1) Member -> Announcements:
+- List announcements (church-wide + group-specific if applicable)
+- Urgent announcements pinned at top
+- Detail view page
+
+2) Member -> Notifications (in-app):
+- List notifications
+- Unread indicator (optional)
+- Mark as read
+
+3) Member -> Gallery:
+- Grid list
+- Open item detail
+- Use URL-based items if file upload not ready
+
+4) Member -> Testimonies:
+- List approved testimonies
+- Optional: member submit testimony (goes pending for admin approval)
+
+Add tiles/navigation to Member Dashboard (home page) so members can access:
+- Announcements
+- Notifications
+- Gallery
+- Testimonies
+(Keep existing Attendance + Prayer Request tiles unchanged.)
+
+==================================================
+D) ADMIN SIDE — ENSURE MODULES WORK (BASIC CRUD)
+==================================================
+Ensure Admin pages load and work without errors for:
+- Announcements (create/list/edit/delete or archive)
+- Notifications (create/list; at minimum create in-app notification records)
+- Gallery (add/list/archive)
+- Testimonies approval (pending -> approve/reject)
+
+If any routes currently show “Cannot GET …” or crash, fix routes/controllers/views.
+
+==================================================
+E) UI LABEL FIXES (REQUIRED)
+==================================================
+- Replace every “Unit/Units” label with “Prayer Cell/Prayer Cells” across Members + Families + dropdowns.
+- Replace “Pastors” with “Pastor” everywhere in UI text.
+
+==================================================
+F) DELIVERABLES AFTER FIX
+==================================================
+After implementing, output:
+1) List of new/updated routes for:
+   - admin members
+   - admin families
+   - member announcements/notifications/gallery/testimonies
+2) Any SQL migration(s) added (safe add-column only)
+3) Confirm where in the UI the new member tiles appear
+4) Confirm family members can be added/removed and address fields save correctly

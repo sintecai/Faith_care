@@ -1,0 +1,97 @@
+Continue from the existing HFNI Connect codebase. Do NOT remove or break any features already working. The original prompts remain valid. Implement ONLY the improvements below.
+
+==================================================
+1) BACKGROUND THEME FIX (READABILITY + CONSISTENCY)
+==================================================
+Current issue:
+- Background image is too dark; logo/text not readable.
+- Member pages not consistently using the same themed background.
+
+Required outcome:
+- Use the SAME background image theme across admin + member pages.
+- Make background image clearly visible (not too dark), while keeping text readable via a subtle overlay.
+- Ensure logo and header text are readable everywhere.
+
+Implementation details:
+- Use a CSS approach like:
+  - background image visible (opacity via overlay, not by darkening the image itself)
+  - apply a soft dark overlay at ~0.35–0.45 opacity (not heavier)
+  - add a content container with white/near-white background and slight transparency (e.g., rgba(255,255,255,0.9)) and blur if supported.
+- Ensure top nav (logo + title + user/logout) has a semi-opaque background so it is always readable.
+- Apply theme to:
+  - Member home/dashboard
+  - Member modules (announcements, notifications, gallery, groups, volunteer, carpooling, calendar)
+  - Existing member login/OTP pages (optional but preferred)
+- Keep layouts the same but ensure readability.
+
+==================================================
+2) MEMBER DASHBOARD UI IMPROVEMENT (MORE USER FRIENDLY)
+==================================================
+Current issue:
+- Member home shows basic tiles but looks plain and not polished.
+
+Required outcome:
+- Improve UX styling similar to admin quality:
+  - Better spacing and hierarchy (title, subtitle, sections)
+  - Cards/tiles with consistent icon sizes, subtle shadows, hover states
+  - Clear labels and descriptions
+  - Responsive grid (mobile-first) – 1 column on mobile, 2 on tablet, 3 on desktop
+  - Add section grouping:
+     “Today” (Attendance, Prayer Request)
+     “Community” (Announcements, Notifications, My Groups)
+     “Events” (Calendar, Carpooling, Volunteer, Gallery, Testimonies if exists)
+- Keep existing links/routes for each tile; do not break navigation.
+- Improve button and card click affordance (entire card clickable).
+
+==================================================
+3) ADDRESS FIELDS FOR MEMBERS + FAMILIES (NOT DONE YET)
+==================================================
+Current issue:
+- Address portion still missing in Member and Family.
+
+Required outcome:
+- Add structured address fields for BOTH members and families in Admin forms and DB.
+Address fields:
+- address_line1 (required)
+- address_line2 (optional)
+- city (required)
+- county (optional)
+- postcode (required)
+- country (required, default "UK")
+
+Tasks:
+A) Database (safe migrations):
+- If members/families tables don’t have these columns, add them (do not drop existing columns).
+- If there is a legacy single "address" column, keep it, but prefer new structured fields in UI.
+
+B) Admin -> Members:
+- Add the address fields to Add/Edit member forms.
+- Validate required address fields on save.
+- Display address summary in members list/detail (optional).
+
+C) Admin -> Families:
+- Expand Add/Edit family forms to include full address fields + existing due details.
+- Ensure save works and displays correctly on family detail page.
+
+D) Optional convenience:
+- In Add/Edit Member form, add checkbox “Same as Family Address”:
+  - If member is linked to a family, auto-fill address fields from family.
+
+==================================================
+4) MEMBER HEADER + LOGO READABILITY
+==================================================
+- Ensure the top header/logo text is readable on the themed background:
+  - add a semi-opaque header bar (e.g., rgba(255,255,255,0.85))
+  - ensure title uses strong contrast
+  - avoid light blue text on white background if it reduces readability
+
+==================================================
+5) DELIVERABLES / VERIFICATION
+==================================================
+After implementing:
+- List files changed (CSS/theme + member home + admin member/family forms + migrations)
+- Provide the route(s) where I can verify:
+  - Member home background and improved UI
+  - Admin add/edit member now includes address fields
+  - Admin add/edit family now includes full address fields
+- Confirm same background theme is applied to both member and admin pages consistently

@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attendance - HFNI Connect Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .bulk-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--card-bg, #fff);
+      border-top: 1px solid var(--border-color, #e5e7eb);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      z-index: 100;
+      box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
+      transform: translateY(100%);
+      transition: transform 0.2s ease;
+    }
+    .bulk-bar.visible {
+      transform: translateY(0);
+    }
+    .bulk-bar .bulk-info {
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .bulk-bar .bulk-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .filters-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .filters-bar .search-input {
+      flex: 1;
+      min-width: 200px;
+    }
+    .filters-bar .filter-tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--bg-secondary, #f3f4f6);
+      border-radius: 8px;
+      padding: 4px;
+    }
+    .filters-bar .filter-tab {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary, #6b7280);
+      transition: all 0.15s;
+    }
+    .filters-bar .filter-tab:hover {
+      background: var(--bg-hover, #e5e7eb);
+    }
+    .filters-bar .filter-tab.active {
+      background: var(--primary-color, #4f46e5);
+      color: white;
+    }
+    .member-checkbox {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: var(--primary-color, #4f46e5);
+    }
+    .table-row-selectable {
+      cursor: pointer;
+      transition: background-color 0.15s;
+    }
+    .table-row-selectable:hover {
+      background: var(--bg-hover, #f3f4f6);
+    }
+    .table-row-selectable.selected {
+      background: rgba(79, 70, 229, 0.08);
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .status-badge.present {
+      background: #dcfce7;
+      color: #166534;
+    }
+    .status-badge.absent {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    .bulk-loading {
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+    .bulk-loading.visible {
+      display: flex;
+    }
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid #e5e7eb;
+      border-top-color: var(--primary-color, #4f46e5);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    @media (max-width: 768px) {
+      .bulk-bar {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 12px;
+      }
+      .bulk-bar .bulk-actions {
+        justify-content: center;
+      }
+      .filters-bar {
+        flex-direction: column;
+      }
+      .filters-bar .search-input {
+        width: 100%;
+      }
+    }
+    .admin-content {
+      padding-bottom: 80px;
+    }
+  </style>
+</head>
+<body>
+<div class="admin-layout">
+  <%- include('./partials/sidebar', { currentPage: 'events' }) %>
+  
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1 class="text-xl font-semibold">Meeting Attendance</h1>
+      <div class="text-sm text-secondary"><%= typeof staffName !== 'undefined' ? staffName : 'Admin' %></div>
+    </header>
+    
+    <div class="admin-content">
+      <div class="flex justify-between items-center gap-4 mb-6 flex-wrap">
+        <div>
+          <h2 class="text-lg"><%= event.title %></h2>
+          <p class="text-secondary text-sm">
+            <%= new Date(event.eventDate).toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) %>
+            <% if (event.location) { %> &bull; <%= event.location %><% } %>
+          </p>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <a href="/admin/events" class="btn btn-secondary" data-testid="button-back">Back to Meetings</a>
+          <% if (event.checkInStatus === 'active') { %>
+            <a href="/admin/events/<%= event.id %>/checkin" class="btn btn-primary" data-testid="button-view-code">View Code</a>
+          <% } %>
+        </div>
+      </div>
+      
+      <div id="messageContainer">
+        <% if (typeof message !== 'undefined' && message) { %>
+          <div class="alert alert-success"><%= message %></div>
+        <% } %>
+        <% if (typeof error !== 'undefined' && error) { %>
+          <div class="alert alert-error"><%= error %></div>
+        <% } %>
+      </div>
+      
+      <div class="grid grid-cols-2 gap-4 mb-6">
+        <div class="card">
+          <div class="card-body text-center">
+            <div class="text-3xl font-bold text-primary" id="presentCount"><%= attendanceList.length %></div>
+            <div class="text-sm text-secondary">Present</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-body text-center">
+            <div class="text-3xl font-bold" id="absentCount"><%= totalMembers - attendanceList.length %></div>
+            <div class="text-sm text-secondary">Absent</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header flex justify-between items-center gap-4 flex-wrap">
+          <h3>All Members (<%= allMembers.length %>)</h3>
+        </div>
+        
+        <div class="card-body" style="border-bottom: 1px solid var(--border-color, #e5e7eb);">
+          <div class="filters-bar">
+            <input 
+              type="text" 
+              id="searchInput" 
+              placeholder="Search by name or phone..." 
+              class="form-control search-input"
+              data-testid="input-search"
+            >
+            <div class="filter-tabs">
+              <button class="filter-tab active" data-filter="all" data-testid="filter-all">All</button>
+              <button class="filter-tab" data-filter="present" data-testid="filter-present">Present</button>
+              <button class="filter-tab" data-filter="absent" data-testid="filter-absent">Not Marked</button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 40px;">
+                  <input type="checkbox" id="selectAll" class="member-checkbox" data-testid="checkbox-select-all">
+                </th>
+                <th>Member</th>
+                <th>Phone</th>
+                <th>Status</th>
+                <th>Method</th>
+              </tr>
+            </thead>
+            <tbody id="memberTableBody">
+              <% 
+                const attendanceMap = {};
+                attendanceList.forEach(a => { attendanceMap[a.memberId] = a; });
+              %>
+              <% allMembers.forEach(function(m) { %>
+                <% const attendance = attendanceMap[m.id]; %>
+                <% const isPresent = !!attendance; %>
+                <tr 
+                  class="table-row-selectable" 
+                  data-member-id="<%= m.id %>"
+                  data-status="<%= isPresent ? 'present' : 'absent' %>"
+                  data-name="<%= (m.firstName + ' ' + m.lastName).toLowerCase() %>"
+                  data-phone="<%= m.phone %>"
+                  data-testid="row-member-<%= m.id %>"
+                >
+                  <td>
+                    <input type="checkbox" class="member-checkbox member-select" data-member-id="<%= m.id %>" data-testid="checkbox-<%= m.id %>">
+                  </td>
+                  <td class="font-medium"><%= m.firstName %> <%= m.lastName %></td>
+                  <td><%= m.phone %></td>
+                  <td>
+                    <% if (isPresent) { %>
+                      <span class="status-badge present">Present</span>
+                    <% } else { %>
+                      <span class="status-badge absent">Absent</span>
+                    <% } %>
+                  </td>
+                  <td>
+                    <% if (attendance) { %>
+                      <% if (attendance.markedByAdmin) { %>
+                        <span class="badge badge-secondary">Admin</span>
+                      <% } else { %>
+                        <span class="badge badge-success">Self</span>
+                      <% } %>
+                    <% } else { %>
+                      <span class="text-secondary">-</span>
+                    <% } %>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="bulk-bar" id="bulkBar">
+  <div class="bulk-info">
+    <span id="selectedCount">0</span> selected
+  </div>
+  <div class="bulk-loading" id="bulkLoading">
+    <div class="spinner"></div>
+    <span>Processing...</span>
+  </div>
+  <div class="bulk-actions" id="bulkActions">
+    <button class="btn btn-success" id="btnMarkPresent" data-testid="button-bulk-present">
+      Mark Present
+    </button>
+    <button class="btn btn-warning" id="btnRemoveAttendance" data-testid="button-bulk-remove">
+      Remove Attendance
+    </button>
+    <button class="btn btn-secondary" id="btnClearSelection" data-testid="button-clear-selection">
+      Clear Selection
+    </button>
+  </div>
+</div>
+
+<script>
+(function() {
+  const meetingId = '<%= event.id %>';
+  const memberTableBody = document.getElementById('memberTableBody');
+  const searchInput = document.getElementById('searchInput');
+  const selectAllCheckbox = document.getElementById('selectAll');
+  const bulkBar = document.getElementById('bulkBar');
+  const selectedCountEl = document.getElementById('selectedCount');
+  const bulkActions = document.getElementById('bulkActions');
+  const bulkLoading = document.getElementById('bulkLoading');
+  const filterTabs = document.querySelectorAll('.filter-tab');
+  const messageContainer = document.getElementById('messageContainer');
+  
+  let selectedMembers = new Set();
+  let currentFilter = 'all';
+  let searchTerm = '';
+  
+  function updateSelectionUI() {
+    const count = selectedMembers.size;
+    selectedCountEl.textContent = count;
+    
+    if (count > 0) {
+      bulkBar.classList.add('visible');
+    } else {
+      bulkBar.classList.remove('visible');
+    }
+    
+    const visibleRows = getVisibleRows();
+    const allVisibleSelected = visibleRows.length > 0 && visibleRows.every(row => {
+      const memberId = row.dataset.memberId;
+      return selectedMembers.has(memberId);
+    });
+    selectAllCheckbox.checked = allVisibleSelected && visibleRows.length > 0;
+    selectAllCheckbox.indeterminate = count > 0 && !allVisibleSelected;
+    
+    document.querySelectorAll('.member-select').forEach(cb => {
+      const memberId = cb.dataset.memberId;
+      cb.checked = selectedMembers.has(memberId);
+      cb.closest('tr').classList.toggle('selected', selectedMembers.has(memberId));
+    });
+  }
+  
+  function getVisibleRows() {
+    return Array.from(memberTableBody.querySelectorAll('tr')).filter(row => {
+      return row.style.display !== 'none';
+    });
+  }
+  
+  function filterAndSearch() {
+    const rows = memberTableBody.querySelectorAll('tr');
+    rows.forEach(row => {
+      const status = row.dataset.status;
+      const name = row.dataset.name || '';
+      const phone = row.dataset.phone || '';
+      
+      const matchesFilter = currentFilter === 'all' || status === currentFilter;
+      const matchesSearch = !searchTerm || 
+        name.includes(searchTerm.toLowerCase()) || 
+        phone.includes(searchTerm);
+      
+      row.style.display = matchesFilter && matchesSearch ? '' : 'none';
+    });
+    
+    updateSelectionUI();
+  }
+  
+  searchInput.addEventListener('input', (e) => {
+    searchTerm = e.target.value.trim();
+    filterAndSearch();
+  });
+  
+  filterTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      filterTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      currentFilter = tab.dataset.filter;
+      filterAndSearch();
+    });
+  });
+  
+  selectAllCheckbox.addEventListener('change', () => {
+    const visibleRows = getVisibleRows();
+    if (selectAllCheckbox.checked) {
+      visibleRows.forEach(row => {
+        selectedMembers.add(row.dataset.memberId);
+      });
+    } else {
+      visibleRows.forEach(row => {
+        selectedMembers.delete(row.dataset.memberId);
+      });
+    }
+    updateSelectionUI();
+  });
+  
+  memberTableBody.addEventListener('click', (e) => {
+    const row = e.target.closest('tr');
+    if (!row) return;
+    
+    const memberId = row.dataset.memberId;
+    const checkbox = row.querySelector('.member-select');
+    
+    if (e.target === checkbox) {
+      if (checkbox.checked) {
+        selectedMembers.add(memberId);
+      } else {
+        selectedMembers.delete(memberId);
+      }
+    } else {
+      if (selectedMembers.has(memberId)) {
+        selectedMembers.delete(memberId);
+      } else {
+        selectedMembers.add(memberId);
+      }
+    }
+    updateSelectionUI();
+  });
+  
+  async function bulkAction(status) {
+    if (selectedMembers.size === 0) return;
+    
+    bulkActions.style.display = 'none';
+    bulkLoading.classList.add('visible');
+    
+    try {
+      const response = await fetch('/api/admin/attendance/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          meetingId,
+          memberIds: Array.from(selectedMembers),
+          status
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.ok) {
+        showMessage('success', data.message);
+        setTimeout(() => window.location.reload(), 800);
+      } else {
+        showMessage('error', data.error || 'Failed to update attendance');
+        bulkActions.style.display = 'flex';
+        bulkLoading.classList.remove('visible');
+      }
+    } catch (err) {
+      showMessage('error', 'Network error. Please try again.');
+      bulkActions.style.display = 'flex';
+      bulkLoading.classList.remove('visible');
+    }
+  }
+  
+  function showMessage(type, text) {
+    const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
+    messageContainer.innerHTML = `<div class="alert ${alertClass}">${text}</div>`;
+  }
+  
+  document.getElementById('btnMarkPresent').addEventListener('click', () => bulkAction('present'));
+  document.getElementById('btnRemoveAttendance').addEventListener('click', () => {
+    if (confirm('Remove attendance records for ' + selectedMembers.size + ' selected member(s)?')) {
+      bulkAction('clear');
+    }
+  });
+  document.getElementById('btnClearSelection').addEventListener('click', () => {
+    selectedMembers.clear();
+    updateSelectionUI();
+  });
+  
+  updateSelectionUI();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,211 @@
+Upgrade my existing app (currently Faith Care) into “HFNI Connect” and ADD new modules requested by client, WITHOUT breaking existing features or changing the working flows. Only rename labels/terms where requested and add new pages + routes + DB tables cleanly.
+
+========================
+A) REQUIRED RENAMES (UI TEXT + DB FIELD NAMES IF SAFE)
+========================
+1) Rename “Priest” to “Pastor” everywhere in UI (labels, headings, buttons, nav).
+   - Keep database table name priests/pastors as-is for now (do not refactor DB structure unless absolutely necessary).
+   - In UI show: “Pastor”.
+
+2) Rename “Mass Events” to “Meetings” everywhere in UI.
+   - Keep existing mass_events table but present it as “Meetings”.
+   - Routes can remain /admin/events etc, but nav label must show Meetings.
+
+3) Rename “Units” to “Prayer Cells” everywhere in UI.
+   - Keep existing units table, but in UI show Prayer Cells.
+   - Admin Units CRUD becomes Admin Prayer Cells.
+
+4) Add a new Admin section heading: “Elders and Ministers”
+   - This is a category (role/group) for staff/leadership. Implement as a module described below.
+
+5) Add new ministry groups/sections in admin + member navigation:
+   - TNT
+   - Jesus School
+   - Core Leaders
+
+These groups should have simple pages that can later be expanded (initially show announcements + calendar + gallery + testimonies filtered by group).
+
+========================
+B) THEME / BACKGROUND IMAGE REQUIREMENT
+========================
+Use the image I provided (the crowd + golden bokeh with Heavenly Feast logo) as the background theme across multiple pages.
+- Add it to public assets (e.g., /public/theme/hfni-bg.jpg).
+- Apply CSS so that:
+  - background covers full page, fixed or parallax-like
+  - add a dark translucent overlay behind content for readability
+  - keep existing layout and components; do not redesign the whole UI
+- Apply theme to:
+  - member home, meetings list/calendar, prayer request, testimonies, gallery, volunteer board, announcements
+  - admin dashboard + admin sections (optional but preferred)
+
+========================
+C) NEW FEATURES TO ADD (DO NOT REMOVE EXISTING FEATURES)
+========================
+
+Feature 1: Push Notifications (Web Push / In-app fallback)
+- Implement notifications as:
+  (1) In-app notifications center (required, always works)
+  (2) Web Push notifications (optional if feasible quickly)
+- Admin can create and send a notification to:
+  - all members
+  - specific Prayer Cell
+  - one of the groups: TNT / Jesus School / Core Leaders / Elders & Ministers
+- Notification types:
+  - Meeting reminder
+  - Prayer request update
+  - Urgent announcement
+- Store notifications in DB and show them in member UI “Notifications” page.
+- If Web Push is too complex for current setup, implement only in-app notifications now, but structure code to add Web Push later.
+
+Feature 2: Event Calendar (Meetings Calendar)
+- Add a calendar/list view for Meetings:
+  - upcoming meetings with title, date, time, location, description, group audience (optional)
+- Admin can create/edit Meetings.
+- Members can view Meetings and optionally RSVP (“Going / Maybe / Not going”).
+- Include reminders capability via notifications.
+
+Feature 3: Photo/Video Gallery
+- Add a gallery module where admin uploads:
+  - photos and videos links (start with URL-based and file upload if storage exists)
+- Display as cards/grid with categories:
+  - General / TNT / Jesus School / Core Leaders / Outreach
+- If file storage is not configured, implement URL upload first (YouTube link, Google Drive link, etc.) and leave file upload as TODO.
+
+Feature 4: Testimonies / Stories
+- Members can submit testimonies (text + optional image URL).
+- Admin approves testimonies before public display.
+- Members can view approved testimonies.
+- Allow filtering by group.
+
+Feature 5: Event Carpooling / Ride Sharing
+- Create a simple “Rides” module tied to Meetings:
+  - Members can offer a ride:
+    meeting_id, pickup_area, seats_available, notes, contact preference
+  - Members can request a ride:
+    meeting_id, pickup_area, notes
+- Show available rides for a meeting.
+- Keep privacy: show only first name + masked phone until a member clicks “Request ride” then send in-app message request to ride owner or create a ride_request record.
+
+Feature 6: Volunteer Request Feature (Request Board)
+- Admin creates volunteer needs:
+  - title, date, time, location, description, required_volunteers, group audience (optional), status
+- Member sees “Volunteer Board”:
+  - list open requests with remaining spots
+  - member taps “I Can Help”
+  - member can choose role (optional) and add a note
+  - system reduces remaining spots
+- Admin can see signups and export list.
+- Add basic anti-duplicate signup (unique per member per volunteer_request).
+
+========================
+D) DATABASE CHANGES (SAFE ADDITIONS ONLY)
+========================
+Do NOT drop existing tables. Add new tables needed for the new features. Use church_id everywhere for multi-tenant.
+
+Add tables (names can be exact as below):
+
+1) groups (ministry groups)
+- group_id uuid pk, church_id uuid, name text (TNT/Jesus School/Core Leaders/Elders and Ministers), is_active boolean
+
+2) member_groups (membership mapping)
+- group_id, member_id, church_id
+- unique(member_id, group_id)
+
+3) meetings_rsvp
+- rsvp_id uuid pk, church_id, meeting_id (mass_events.event_id), member_id, status ('going','maybe','not_going'), updated_at
+
+4) announcements
+- announcement_id uuid pk, church_id, group_id nullable, title, body, priority ('normal','urgent'), created_at, created_by_staff_id
+
+5) notifications
+- notification_id uuid pk, church_id, group_id nullable, unit_id nullable, title, body, type, created_at, created_by_staff_id
+- notification_reads: notification_id, member_id, read_at
+
+6) gallery_items
+- item_id uuid pk, church_id, group_id nullable, title, media_type ('photo','video'), url text, thumbnail_url text nullable, created_at, created_by_staff_id, is_active boolean
+
+7) testimonies
+- testimony_id uuid pk, church_id, group_id nullable, member_id, title, body, image_url nullable, status ('pending','approved','rejected'), created_at, reviewed_by_staff_id nullable, reviewed_at
+
+8) volunteer_requests
+- request_id uuid pk, church_id, group_id nullable, title, description, date, start_time, end_time, location, required_volunteers int, status ('open','closed'), created_at, created_by_staff_id
+
+9) volunteer_signups
+- signup_id uuid pk, church_id, request_id, member_id, role text nullable, note text nullable, created_at
+- unique(request_id, member_id)
+
+10) rides_offers
+- offer_id uuid pk, church_id, meeting_id, member_id, pickup_area, seats_available int, notes, created_at, status ('open','closed')
+
+11) ride_requests
+- req_id uuid pk, church_id, meeting_id, requester_member_id, offer_id nullable, pickup_area, notes, created_at, status ('pending','accepted','declined')
+
+Run migrations safely via SQL files in a /migrations folder and execute them on startup only if not present, OR provide a single SQL block I can run in Supabase SQL editor. If app is using Replit DB, still create logical models now and ensure code uses the current DB adapter.
+
+========================
+E) ADMIN UI ADDITIONS (KEEP EXISTING ADMIN UI)
+========================
+Add admin nav items (without removing existing):
+- Prayer Cells (existing Units CRUD but relabeled)
+- Meetings (existing Mass Events relabeled)
+- Elders and Ministers (staff/group management page)
+- TNT
+- Jesus School
+- Core Leaders
+- Announcements
+- Notifications
+- Gallery
+- Testimonies (approval queue)
+- Volunteer Board
+- Carpooling
+
+Admin capabilities:
+- Manage Prayer Cells (already built)
+- Manage Meetings (create/edit/open/close attendance still works)
+- Manage Groups (assign members to groups)
+- Create announcements + notifications
+- Manage gallery items
+- Approve/reject testimonies
+- Create volunteer requests + view signups
+- View rides/offers per meeting (basic moderation)
+
+========================
+F) MEMBER UI ADDITIONS (KEEP EXISTING MEMBER HOME)
+========================
+On member home page, keep the existing tiles (attendance + prayer request) and add tiles:
+- Meetings
+- Calendar
+- Announcements
+- Notifications
+- Gallery
+- Testimonies
+- Volunteer Board
+- Carpooling / Rides
+
+Also add group pages for:
+- TNT
+- Jesus School
+- Core Leaders
+Each group page shows:
+- announcements filtered by group
+- upcoming meetings filtered by group (if meetings have group audience)
+- gallery items filtered by group
+- testimonies filtered by group
+
+========================
+G) CONSTRAINTS
+========================
+- Do not remove or break: OTP login, prayer request flow, attendance, admin dashboard.
+- Only relabel UI text for the renames.
+- All new DB writes must include church_id and must be scoped correctly.
+- Use parameterized queries only.
+- Keep CSS changes minimal: apply background theme + overlay, do not redesign layouts.
+
+========================
+H) DELIVERABLES
+========================
+After implementing:
+1) List of files changed/added.
+2) Any SQL migration file(s) or SQL block to run.
+3) Updated admin navigation and member navigation routes.
+4) Confirm existing features still work.

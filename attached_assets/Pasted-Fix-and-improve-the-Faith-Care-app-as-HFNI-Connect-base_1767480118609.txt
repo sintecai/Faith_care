@@ -1,0 +1,44 @@
+Fix and improve the Faith Care app as “HFNI Connect” based on the following feedback:
+
+1) **Background Visibility Issue**
+   - Currently, the background image is too dark, making the content unreadable.
+   - Adjust the background theme so that the image is visible and content remains legible.
+   - Ensure the darkened overlay allows for readable text and buttons.
+   - The image used should be **fixed in position** and should work well with all pages (admin, member, meetings, etc.).
+
+2) **Missing Sections in Admin UI**
+   - Ensure that the following sections appear in the **admin dashboard**:
+     - Elders and Ministers
+     - TNT
+     - Jesus School
+     - Core Leaders
+   - These should be represented as **ministry groups** on the left sidebar navigation and should have an admin page where you can view, edit, and manage each group.
+   
+3) **Pastor to Pastor Update**
+   - The label “Pastor” should replace the word “Pastors” across the entire UI (both admin and member sections).
+
+4) **Member Dashboard UI Completion**
+   - The **member dashboard** isn't fully made (see attached screenshot).
+   - Add the **following features** for members:
+     - **Carpooling / Ride Sharing** functionality.
+     - Allow members to **request rides** and **offer rides** for meetings/events.
+     - Display carpooling options on the **member dashboard** (not only in the admin).
+     - Include **calendar functionality** for upcoming meetings/events.
+     - Display **group-based content** (e.g., TNT, Jesus School, Core Leaders) for easy access.
+     - Ensure **navigation improvements**: Tiles/links should be easy to click and look professional (matching admin UI).
+   
+5) **Improve Overall UI/UX in Member Section**
+   - Make the **member area full-screen** with proper spacing and alignment.
+   - Ensure that all features (prayer requests, carpooling, volunteer requests) are visually accessible and aligned.
+   - Include **icons** and visual improvements to make the **interaction more intuitive**.
+   - Ensure **responsive behavior** for mobile and tablet devices.
+
+6) **Existing Prompt is Still Valid**
+   - Continue implementing the previously requested changes (e.g., units → prayer cells, meetings → mass events, background image, etc.).
+   - The newly added sections and features should not affect the previously implemented changes.
+
+Deliverables:
+- Updated admin UI with the missing sections.
+- Member UI with the carpooling feature and better layout.
+- Fixed background and enhanced theme.
+- Ensure

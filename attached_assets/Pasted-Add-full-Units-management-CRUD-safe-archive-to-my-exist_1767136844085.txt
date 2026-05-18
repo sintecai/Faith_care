@@ -1,0 +1,61 @@
+Add full Units management (CRUD + safe “archive”) to my existing Faith Care app admin dashboard.
+
+Context:
+- App is already working with Express + TypeScript (tsx server/index.ts).
+- Admin routes exist at /admin/login and /admin/*.
+- Database already has a `units` table with at least:
+  unit_id (uuid), church_id (uuid), name (text), description (text), is_active (boolean), created_at
+- Members table references units via members.unit_id.
+- Multi-tenant: all queries must filter by church_id.
+
+Goal:
+Add an Admin “Units” section where admin can:
+- View active units
+- Add a unit
+- Edit a unit
+- Archive a unit (set is_active=false) instead of hard delete
+- Optionally view archived units and restore them (set is_active=true)
+
+Requirements:
+1) Routing
+Create these routes (keep consistent with the rest of the admin routing style):
+- GET  /admin/units                 -> list units (default show active only; allow ?show=all or ?show=archived)
+- GET  /admin/units/new             -> show create form
+- POST /admin/units                 -> create unit
+- GET  /admin/units/:unit_id/edit   -> show edit form
+- POST /admin/units/:unit_id        -> update unit (name, description)
+- POST /admin/units/:unit_id/archive -> set is_active=false
+- POST /admin/units/:unit_id/restore -> set is_active=true (optional)
+
+2) Database rules
+- Always filter by church_id in WHERE clauses.
+- Enforce unique unit names per church (handle DB unique error gracefully and show user-friendly message like “Unit name already exists”).
+- Never hard delete units (to avoid breaking member references).
+- When listing units, show member count per unit:
+  SELECT u.*, COUNT(m.member_id) AS member_count
+  FROM units u
+  LEFT JOIN members m ON m.unit_id = u.unit_id AND m.is_active=true
+  WHERE u.church_id = $1
+  GROUP BY u.unit_id
+  ORDER BY lower(u.name);
+
+3) UI
+- Add “Units” link in the admin sidebar/nav.
+- Units list page shows: name, description, active/archived badge, member_count, actions (Edit, Archive/Restore).
+- New/Edit pages use a simple form with fields:
+  - name (required)
+  - description (optional)
+
+4) Auth/Permissions
+- Only logged-in admin/staff can access /admin/units routes.
+- Reuse existing admin auth middleware (do not invent new auth).
+- Use CSRF protection if the project already has it; otherwise keep consistent with the existing codebase.
+
+5) Deliverables
+- Working Units pages and routes
+- No breaking changes to existing members, prayer requests, attendance flows
+- Add brief comments in code where needed
+
+After implementing, provide:
+- Which files were created/modified
+- What URL to visit to manage units

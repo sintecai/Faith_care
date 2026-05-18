@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Meeting - HFNI Connect Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="admin-layout">
+  <%- include('./partials/sidebar', { currentPage: 'events' }) %>
+  
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1 class="text-xl font-semibold">New Meeting</h1>
+      <div class="text-sm text-secondary"><%= typeof staffName !== 'undefined' ? staffName : 'Admin' %></div>
+    </header>
+    
+    <div class="admin-content">
+      <div style="max-width: 32rem;">
+        <div class="card">
+          <div class="card-header">
+            <h3>Create New Meeting</h3>
+          </div>
+          <div class="card-body">
+            <% if (typeof error !== 'undefined' && error) { %>
+              <div class="alert alert-error"><%= error %></div>
+            <% } %>
+            
+            <form method="POST" action="/admin/events/new">
+              <div class="form-group">
+                <label class="form-label" for="title">Meeting Title</label>
+                <input type="text" id="title" name="title" class="form-control" placeholder="e.g., Sunday Gathering" required data-testid="input-title">
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label" for="eventDate">Date & Time</label>
+                <input type="datetime-local" id="eventDate" name="eventDate" class="form-control" required data-testid="input-date">
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label" for="location">Location (optional)</label>
+                <input type="text" id="location" name="location" class="form-control" placeholder="e.g., Main Hall" data-testid="input-location">
+              </div>
+              
+              <div class="flex gap-3 mt-6">
+                <a href="/admin/events" class="btn btn-secondary" data-testid="button-cancel">Cancel</a>
+                <button type="submit" class="btn btn-primary flex-1" data-testid="button-create-event">
+                  Create Meeting
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

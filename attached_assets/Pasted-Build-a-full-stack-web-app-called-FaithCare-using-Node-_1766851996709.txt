@@ -1,0 +1,73 @@
+Build a full-stack web app called “FaithCare” using Node.js + Express + PostgreSQL.
+
+Context:
+This app is for a church to track members, mark Mass attendance via QR code + OTP login, accept prayer requests, and allow admin/priest dashboards. The database is already created in Supabase Postgres with the following tables:
+churches, units, members, families, family_members, priests, staff_accounts, mass_events, attendance, prayer_requests, dues_payments, outbound_messages, and view v_event_attendance_summary.
+
+Important constraints:
+- Multi-tenant ready: every query must filter by church_id.
+- Member login is via SMS OTP, but for MVP implement OTP as a development stub (store OTP in server logs). Keep the OTP interface clean so Twilio Verify can be plugged in later.
+- Members are pre-created by admin (no signup). Members login using their phone number.
+- Attendance can be marked only when there is an open Mass event and when a valid QR token is provided.
+- Admin can open/close attendance for an event and generate a QR link.
+- Prayer requests can be submitted anytime and should create a row in prayer_requests and also create an outbound_messages row (queued) to priest phone (SMS sending can be stubbed for now).
+
+Tech requirements:
+- Backend: Express
+- Views: EJS (server-rendered) to keep it simple
+- DB: PostgreSQL using node-postgres (pg) library
+- Config via environment variables (DATABASE_URL, APP_SECRET, BASE_URL)
+- Sessions: express-session (cookie-based)
+- Input validation and safe SQL (parameterized queries only)
+- Provide a clean folder structure: /src with routes, db, services, views, public
+
+Core pages:
+1) Member flow:
+   - GET /attend?eventId=...&token=... -> if not logged in, redirect to login and then back
+   - GET /login -> phone input
+   - POST /login -> send OTP (stub)
+   - GET /verify -> OTP input
+   - POST /verify -> verify OTP (stub) -> session set: member_id + church_id
+   - GET /home -> two tiles: “Mark Attendance” (only if event open) and “Prayer Request”
+   - POST /attendance/confirm -> confirm attendance for the currently open event (or eventId from query) with feedback
+   - GET /prayer-request -> form with priest dropdown + textbox (unit auto from profile)
+   - POST /prayer-request -> insert into prayer_requests + insert outbound_messages (queued)
+
+2) Admin/Priest flow:
+   - GET /admin/login -> email + password for staff_accounts (for MVP you can hardcode a single admin password in env)
+   - After login: GET /admin/dashboard -> show:
+        total members, active members,
+        latest open/most recent event attendance count and %
+        prayer request counts (new/accepted/closed)
+        dues due in next 7 days + overdue counts
+   - Members management:
+        GET /admin/members -> searchable list
+        GET /admin/members/new + POST create
+        GET /admin/members/:id/edit + POST update
+   - Mass events:
+        GET /admin/events -> list
+        GET /admin/events/new + POST create
+        POST /admin/events/:id/open -> set attendance_open=true, set window start/end, generate qr_token, show QR URL
+        POST /admin/events/:id/close -> set attendance_open=false
+   - Prayer requests:
+        GET /admin/prayers -> list/filter by status, assign priest, accept/close
+   - Dues:
+        GET /admin/dues -> list families + next_due_date + status
+        POST /admin/dues/:family_id/mark-paid -> write dues_payments row and move next_due_date forward (monthly by default)
+
+Business rules:
+- Attendance unique per member per event (handle duplicate gracefully).
+- QR token validation: event attendance must be open and current time within attendance window, token must match mass_events.qr_token.
+- Prayer request default priest: if only one priest exists, auto-select; otherwise require selection.
+- All write operations must use church_id in WHERE clauses to avoid cross-church access.
+
+Deliverables:
+- Working app with seed-based church_id hardcoded for MVP (read first church_id from churches table on server startup and use it as default church).
+- A README with setup steps and exact environment variables.
+- A script or command in package.json to run the server.
+- Use minimal but clean UI (simple CSS in /public).
+
+After building, show me:
+- How to set DATABASE_URL in Replit Secrets
+- How to run migrations (not needed since DB already exists)
+- How to start the app

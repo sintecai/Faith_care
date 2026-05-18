@@ -1,0 +1,215 @@
+<aside class="admin-sidebar">
+  <div class="admin-sidebar-header">
+    <a href="/admin/dashboard" class="admin-sidebar-logo" data-testid="link-admin-home">HFNI Connect</a>
+  </div>
+  
+  <nav class="admin-sidebar-nav">
+    <a href="/admin/dashboard" class="admin-nav-item <%= currentPage === 'dashboard' ? 'active' : '' %>" data-testid="nav-dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="7" height="7"/>
+        <rect x="14" y="3" width="7" height="7"/>
+        <rect x="14" y="14" width="7" height="7"/>
+        <rect x="3" y="14" width="7" height="7"/>
+      </svg>
+      Dashboard
+    </a>
+    
+    <div class="admin-nav-section">People</div>
+    
+    <a href="/admin/members" class="admin-nav-item <%= currentPage === 'members' ? 'active' : '' %>" data-testid="nav-members">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      Members
+    </a>
+    
+    <a href="/admin/families" class="admin-nav-item <%= currentPage === 'families' ? 'active' : '' %>" data-testid="nav-families">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      Families
+    </a>
+    
+    <a href="/admin/pastors" class="admin-nav-item <%= currentPage === 'pastors' ? 'active' : '' %>" data-testid="nav-pastors">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
+      Pastor
+    </a>
+    
+    <a href="/admin/units" class="admin-nav-item <%= currentPage === 'units' ? 'active' : '' %>" data-testid="nav-units">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M14.31 8l5.74 9.94M9.69 8h11.48M7.38 12l5.74-9.94M9.69 16L3.95 6.06M14.31 16H2.83M16.62 12l-5.74 9.94"/>
+      </svg>
+      Prayer Cells
+    </a>
+    
+    <div class="admin-nav-section">Ministry Groups</div>
+    
+    <a href="/admin/groups" class="admin-nav-item <%= currentPage === 'groups' ? 'active' : '' %>" data-testid="nav-groups">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      All Groups
+    </a>
+    
+    <a href="/admin/groups?name=elders" class="admin-nav-item <%= currentPage === 'elders' ? 'active' : '' %>" data-testid="nav-elders">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2L2 7v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7L12 2z"/>
+        <circle cx="12" cy="12" r="3"/>
+      </svg>
+      Elders &amp; Ministers
+    </a>
+    
+    <a href="/admin/groups?name=tnt" class="admin-nav-item <%= currentPage === 'tnt' ? 'active' : '' %>" data-testid="nav-tnt">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+      </svg>
+      TNT
+    </a>
+    
+    <a href="/admin/groups?name=jesus-school" class="admin-nav-item <%= currentPage === 'jesus-school' ? 'active' : '' %>" data-testid="nav-jesus-school">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+      </svg>
+      Jesus School
+    </a>
+    
+    <a href="/admin/groups?name=core-leaders" class="admin-nav-item <%= currentPage === 'core-leaders' ? 'active' : '' %>" data-testid="nav-core-leaders">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 6v6l4 2"/>
+      </svg>
+      Core Leaders
+    </a>
+    
+    <div class="admin-nav-section">Activities</div>
+    
+    <a href="/admin/events" class="admin-nav-item <%= currentPage === 'events' ? 'active' : '' %>" data-testid="nav-events">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+        <line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/>
+        <line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+      Meetings
+    </a>
+    
+    <a href="/admin/prayers" class="admin-nav-item <%= currentPage === 'prayers' ? 'active' : '' %>" data-testid="nav-prayers">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+      Prayer Requests
+    </a>
+    
+    <a href="/admin/dues" class="admin-nav-item <%= currentPage === 'dues' ? 'active' : '' %>" data-testid="nav-dues">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="1" x2="12" y2="23"/>
+        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+      </svg>
+      Dues
+    </a>
+    
+    <a href="/admin/dues/reminders" class="admin-nav-item <%= currentPage === 'dues-reminders' ? 'active' : '' %>" data-testid="nav-dues-reminders">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+      </svg>
+      Dues Reminders
+    </a>
+    
+    <div class="admin-nav-section">Content</div>
+    
+    <a href="/admin/announcements" class="admin-nav-item <%= currentPage === 'announcements' ? 'active' : '' %>" data-testid="nav-announcements">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+      </svg>
+      Announcements
+    </a>
+    
+    <a href="/admin/gallery" class="admin-nav-item <%= currentPage === 'gallery' ? 'active' : '' %>" data-testid="nav-gallery">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+        <circle cx="8.5" cy="8.5" r="1.5"/>
+        <polyline points="21 15 16 10 5 21"/>
+      </svg>
+      Gallery
+    </a>
+    
+    <a href="/admin/testimonies" class="admin-nav-item <%= currentPage === 'testimonies' ? 'active' : '' %>" data-testid="nav-testimonies">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+      Testimonies
+    </a>
+    
+    <div class="admin-nav-section">Community</div>
+    
+    <a href="/admin/messages" class="admin-nav-item <%= currentPage === 'messages' ? 'active' : '' %>" data-testid="nav-messages">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+      Member Messages
+    </a>
+    
+    <a href="/admin/celebrations" class="admin-nav-item <%= currentPage === 'celebrations' ? 'active' : '' %>" data-testid="nav-celebrations">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+        <path d="M12 14l2 2-2 2M12 14l-2 2 2 2"/>
+      </svg>
+      Celebrations
+    </a>
+    
+    <a href="/admin/volunteer" class="admin-nav-item <%= currentPage === 'volunteer' ? 'active' : '' %>" data-testid="nav-volunteer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="8.5" cy="7" r="4"/>
+        <line x1="20" y1="8" x2="20" y2="14"/>
+        <line x1="23" y1="11" x2="17" y2="11"/>
+      </svg>
+      Volunteer Board
+    </a>
+    
+    <a href="/admin/carpooling" class="admin-nav-item <%= currentPage === 'carpooling' ? 'active' : '' %>" data-testid="nav-carpooling">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M5 11h14M5 11l2.5-5h9l2.5 5M5 11l-3 5h20l-3-5"/>
+        <circle cx="7" cy="17" r="2"/>
+        <circle cx="17" cy="17" r="2"/>
+      </svg>
+      Carpooling
+    </a>
+    
+    <div class="admin-nav-section">Settings</div>
+    
+    <a href="/admin/churches" class="admin-nav-item <%= currentPage === 'churches' ? 'active' : '' %>" data-testid="nav-churches">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2L2 7v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7L12 2z"/>
+        <polyline points="12 2 12 12"/>
+        <line x1="8" y1="22" x2="8" y2="16"/>
+        <line x1="16" y1="22" x2="16" y2="16"/>
+      </svg>
+      Churches
+    </a>
+  </nav>
+  
+  <div class="admin-sidebar-footer">
+    <a href="/admin/logout" class="admin-nav-item" data-testid="button-admin-logout">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <polyline points="16 17 21 12 16 7"/>
+        <line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+      Logout
+    </a>
+  </div>
+</aside>

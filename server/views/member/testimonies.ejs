@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Testimonies - HFNI Connect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="member-page hfni-themed">
+  <!-- Mobile Navigation -->
+  <%- include('../partials/member-mobile-nav') %>
+  
+  <div class="member-header">
+    <div class="member-header-inner">
+      <!-- Mobile hamburger button -->
+      <button id="mobile-menu-btn" class="mobile-menu-btn" data-testid="button-mobile-menu" aria-label="Open menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      
+      <a href="/home" class="member-logo" data-testid="link-home">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Back
+      </a>
+      <span class="member-title">Testimonies</span>
+      <div class="flex items-center gap-3">
+        <a href="/logout" class="btn btn-primary btn-sm desktop-only" data-testid="button-logout">Logout</a>
+      </div>
+    </div>
+  </div>
+  
+  <div class="member-content">
+    <div class="member-dashboard">
+      <% if (typeof message !== 'undefined' && message) { %>
+        <div class="alert alert-success mb-4"><%= message %></div>
+      <% } %>
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-error mb-4"><%= error %></div>
+      <% } %>
+      
+      <div class="card mb-6">
+        <div class="card-header">
+          <h3>Share Your Testimony</h3>
+        </div>
+        <div class="card-body">
+          <form method="POST" action="/testimonies/submit" data-testid="form-testimony">
+            <div class="form-group">
+              <label class="form-label" for="title">Title *</label>
+              <input type="text" id="title" name="title" class="form-control" placeholder="Give your testimony a title" required data-testid="input-title">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="content">Your Testimony *</label>
+              <textarea id="content" name="content" class="form-control" rows="5" placeholder="Share how God has worked in your life..." required data-testid="input-content"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">
+                <input type="checkbox" name="anonymous" data-testid="checkbox-anonymous">
+                Submit anonymously
+              </label>
+            </div>
+            <button type="submit" class="btn btn-primary" data-testid="button-submit">Submit Testimony</button>
+            <p class="text-sm text-muted mt-2">Your testimony will be reviewed before being published.</p>
+          </form>
+        </div>
+      </div>
+      
+      <h2 class="text-lg font-semibold mb-4">Approved Testimonies</h2>
+      
+      <% if (typeof testimonies !== 'undefined' && testimonies.length > 0) { %>
+        <% testimonies.forEach(function(testimony) { %>
+          <div class="card mb-4" data-testid="testimony-<%= testimony.id %>">
+            <div class="card-body">
+              <h3 class="font-medium mb-2"><%= testimony.title %></h3>
+              <p class="text-secondary mb-3"><%= testimony.content %></p>
+              <div class="flex justify-between items-center text-sm text-muted">
+                <span>
+                  <% if (testimony.isAnonymous) { %>
+                    Anonymous
+                  <% } else { %>
+                    <%= testimony.memberName || 'A member' %>
+                  <% } %>
+                </span>
+                <span>
+                  <%= new Date(testimony.submittedAt || Date.now()).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) %>
+                </span>
+              </div>
+            </div>
+          </div>
+        <% }); %>
+      <% } else { %>
+        <div class="empty-state">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mb-4">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          <h3>No Testimonies Yet</h3>
+          <p class="text-secondary">Be the first to share how God has blessed you!</p>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+</body>
+</html>

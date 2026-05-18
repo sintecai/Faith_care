@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= isEdit ? 'Edit' : 'Add' %> Pastor - HFNI Connect Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="admin-layout">
+  <%- include('./partials/sidebar', { currentPage: 'pastors' }) %>
+  
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1 class="text-xl font-semibold"><%= isEdit ? 'Edit' : 'Add' %> Pastor</h1>
+      <div class="text-sm text-secondary"><%= typeof staffName !== 'undefined' ? staffName : 'Admin' %></div>
+    </header>
+    
+    <div class="admin-content">
+      <div class="card" style="max-width: 40rem;">
+        <div class="card-body">
+          <% if (typeof error !== 'undefined' && error) { %>
+            <div class="alert alert-error"><%= error %></div>
+          <% } %>
+          
+          <form method="POST" action="/admin/pastors<%= isEdit ? '/' + pastor.id + '/edit' : '/new' %>">
+            <div class="form-group">
+              <label class="form-label" for="name">Name *</label>
+              <input 
+                type="text" 
+                id="name" 
+                name="name" 
+                class="form-control" 
+                placeholder="Enter pastor name"
+                value="<%= (typeof pastor !== 'undefined' && pastor) ? pastor.name : '' %>"
+                required
+                data-testid="input-name"
+              >
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label" for="phone">Phone</label>
+              <input 
+                type="tel" 
+                id="phone" 
+                name="phone" 
+                class="form-control" 
+                placeholder="Enter phone number"
+                value="<%= (typeof pastor !== 'undefined' && pastor && pastor.phone) ? pastor.phone : '' %>"
+                data-testid="input-phone"
+              >
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label" for="email">Email</label>
+              <input 
+                type="email" 
+                id="email" 
+                name="email" 
+                class="form-control" 
+                placeholder="Enter email"
+                value="<%= (typeof pastor !== 'undefined' && pastor && pastor.email) ? pastor.email : '' %>"
+                data-testid="input-email"
+              >
+            </div>
+            
+            <% if (isEdit) { %>
+            <div class="form-group">
+              <label class="form-check">
+                <input 
+                  type="checkbox" 
+                  name="isActive" 
+                  class="form-check-input" 
+                  <%= (typeof pastor !== 'undefined' && pastor && pastor.isActive) ? 'checked' : '' %>
+                  data-testid="checkbox-active"
+                >
+                <span class="form-check-label">Active</span>
+              </label>
+            </div>
+            <% } %>
+            
+            <div class="flex gap-3 mt-6">
+              <a href="/admin/pastors" class="btn btn-secondary" data-testid="button-cancel">Cancel</a>
+              <button type="submit" class="btn btn-primary flex-1" data-testid="button-submit">
+                <%= isEdit ? 'Update' : 'Create' %> Pastor
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

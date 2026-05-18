@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= typeof isEdit !== 'undefined' && isEdit ? 'Edit' : 'New' %> Member - HFNI Connect Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="admin-layout">
+  <%- include('./partials/sidebar', { currentPage: 'members' }) %>
+  
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1 class="text-xl font-semibold"><%= typeof isEdit !== 'undefined' && isEdit ? 'Edit Member' : 'New Member' %></h1>
+      <div class="text-sm text-secondary"><%= typeof staffName !== 'undefined' ? staffName : 'Admin' %></div>
+    </header>
+    
+    <div class="admin-content">
+      <div style="max-width: 40rem;">
+        <div class="card">
+          <div class="card-header">
+            <h3><%= typeof isEdit !== 'undefined' && isEdit ? 'Edit Member' : 'Add New Member' %></h3>
+          </div>
+          <div class="card-body">
+            <% if (typeof error !== 'undefined' && error) { %>
+              <div class="alert alert-error"><%= error %></div>
+            <% } %>
+            
+            <form method="POST" action="<%= typeof isEdit !== 'undefined' && isEdit ? '/admin/members/' + member.id + '/edit' : '/admin/members/new' %>">
+              <h4 class="text-md font-medium mb-3">Personal Information</h4>
+              
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="firstName">First Name *</label>
+                  <input type="text" id="firstName" name="firstName" class="form-control" value="<%= typeof member !== 'undefined' && member ? member.firstName : '' %>" required data-testid="input-firstname">
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label" for="lastName">Last Name *</label>
+                  <input type="text" id="lastName" name="lastName" class="form-control" value="<%= typeof member !== 'undefined' && member ? member.lastName : '' %>" required data-testid="input-lastname">
+                </div>
+              </div>
+              
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="phone">Phone Number *</label>
+                  <input type="tel" id="phone" name="phone" class="form-control" value="<%= typeof member !== 'undefined' && member ? member.phone : '' %>" required data-testid="input-phone">
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label" for="email">Email</label>
+                  <input type="email" id="email" name="email" class="form-control" value="<%= typeof member !== 'undefined' && member && member.email ? member.email : '' %>" data-testid="input-email">
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label" for="unitId">Prayer Cell</label>
+                <select id="unitId" name="unitId" class="form-control" data-testid="select-prayer-cell">
+                  <option value="">No Prayer Cell</option>
+                  <% if (typeof units !== 'undefined') { %>
+                    <% units.forEach(function(u) { %>
+                      <option value="<%= u.id %>" <%= (typeof member !== 'undefined' && member && member.unitId === u.id) ? 'selected' : '' %>><%= u.name %></option>
+                    <% }); %>
+                  <% } %>
+                </select>
+              </div>
+              
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="dateOfBirth">Date of Birth</label>
+                  <input type="date" id="dateOfBirth" name="dateOfBirth" class="form-control" value="<%= typeof member !== 'undefined' && member && member.dateOfBirth ? member.dateOfBirth : '' %>" data-testid="input-date-of-birth">
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label" for="weddingAnniversary">Wedding Anniversary</label>
+                  <input type="date" id="weddingAnniversary" name="weddingAnniversary" class="form-control" value="<%= typeof member !== 'undefined' && member && member.weddingAnniversary ? member.weddingAnniversary : '' %>" data-testid="input-wedding-anniversary">
+                </div>
+              </div>
+              
+              <hr class="my-4">
+              <h4 class="text-md font-medium mb-3">Address</h4>
+              
+              <% if (typeof families !== 'undefined' && families.length > 0) { %>
+              <div class="form-group">
+                <label class="form-label">
+                  <input type="checkbox" id="sameAsFamilyAddress" name="sameAsFamilyAddress" data-testid="checkbox-same-address">
+                  Copy address from family
+                </label>
+                <select id="copyFromFamily" name="copyFromFamily" class="form-control mt-2" data-testid="select-copy-family">
+                  <option value="">Select family to copy address from...</option>
+                  <% families.forEach(function(f) { %>
+                    <option value="<%= f.id %>" data-address1="<%= f.addressLine1 || '' %>" data-address2="<%= f.addressLine2 || '' %>" data-city="<%= f.city || '' %>" data-county="<%= f.county || '' %>" data-postcode="<%= f.postcode || '' %>" data-country="<%= f.country || 'UK' %>"><%= f.name %></option>
+                  <% }); %>
+                </select>
+              </div>
+              <% } %>
+              
+              <div class="form-group">
+                <label class="form-label" for="addressLine1">Address Line 1 *</label>
+                <input type="text" id="addressLine1" name="addressLine1" class="form-control" value="<%= typeof member !== 'undefined' && member && member.addressLine1 ? member.addressLine1 : '' %>" placeholder="House number and street" data-testid="input-address-line1">
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label" for="addressLine2">Address Line 2</label>
+                <input type="text" id="addressLine2" name="addressLine2" class="form-control" value="<%= typeof member !== 'undefined' && member && member.addressLine2 ? member.addressLine2 : '' %>" placeholder="Apartment, suite, etc. (optional)" data-testid="input-address-line2">
+              </div>
+              
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="city">City *</label>
+                  <input type="text" id="city" name="city" class="form-control" value="<%= typeof member !== 'undefined' && member && member.city ? member.city : '' %>" data-testid="input-city">
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label" for="county">County</label>
+                  <input type="text" id="county" name="county" class="form-control" value="<%= typeof member !== 'undefined' && member && member.county ? member.county : '' %>" data-testid="input-county">
+                </div>
+              </div>
+              
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="postcode">Postcode *</label>
+                  <input type="text" id="postcode" name="postcode" class="form-control" value="<%= typeof member !== 'undefined' && member && member.postcode ? member.postcode : '' %>" data-testid="input-postcode">
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label" for="country">Country *</label>
+                  <input type="text" id="country" name="country" class="form-control" value="<%= typeof member !== 'undefined' && member && member.country ? member.country : 'UK' %>" data-testid="input-country">
+                </div>
+              </div>
+              
+              <hr class="my-4">
+              <h4 class="text-md font-medium mb-3">Preferences</h4>
+              
+              <div class="form-group">
+                <label class="form-label">
+                  <input type="checkbox" name="smsConsent" <%= (typeof member === 'undefined' || !member || member.smsConsent !== false) ? 'checked' : '' %> data-testid="checkbox-sms-consent">
+                  Consent to receive SMS messages
+                </label>
+              </div>
+              
+              <% if (typeof isEdit !== 'undefined' && isEdit) { %>
+              <div class="form-group">
+                <label class="form-label">
+                  <input type="checkbox" name="isActive" <%= (typeof member !== 'undefined' && member && member.isActive) ? 'checked' : '' %> data-testid="checkbox-active">
+                  Active member
+                </label>
+              </div>
+              <% } %>
+              
+              <% if (typeof isEdit !== 'undefined' && isEdit) { %>
+              <hr class="my-4">
+              <h4 class="text-md font-medium mb-3">Member Login</h4>
+              <p class="text-secondary text-sm mb-3">Generate a one-time login link for this member to set their password.</p>
+              
+              <div class="flex items-center gap-3 mb-3">
+                <button type="button" id="generate-login-link-btn" class="btn btn-secondary" data-testid="button-generate-login-link">
+                  Generate Login Link
+                </button>
+                <span class="text-sm text-secondary">
+                  <% if (typeof member !== 'undefined' && member && member.passwordHash) { %>
+                    <span class="text-success">Password set</span>
+                  <% } else { %>
+                    <span class="text-warning">No password set</span>
+                  <% } %>
+                </span>
+              </div>
+              
+              <div id="login-link-result" style="display: none;">
+                <div class="alert alert-success mb-3">
+                  <strong>Link generated!</strong> Valid for 48 hours. Share this link with the member:
+                </div>
+                <div class="flex items-center gap-2 mb-2">
+                  <input type="text" id="login-link-input" class="form-control" readonly data-testid="input-login-link">
+                  <button type="button" id="copy-link-btn" class="btn btn-secondary" data-testid="button-copy-link">Copy</button>
+                </div>
+                <p class="text-sm text-secondary">Expires: <span id="link-expiry"></span></p>
+              </div>
+              <% } %>
+              
+              <hr class="my-4">
+              <h4 class="text-md font-medium mb-3">Individual Contribution Settings</h4>
+              <p class="text-secondary text-sm mb-3">For members not linked to a family who pay contributions individually.</p>
+              
+              <div class="form-group">
+                <label class="form-label">
+                  <input type="checkbox" name="duesIsEnabled" <%= (typeof member !== 'undefined' && member && member.duesIsEnabled) ? 'checked' : '' %> data-testid="checkbox-dues-enabled">
+                  Enable Individual Contribution
+                </label>
+              </div>
+              
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="duesAmount">Contribution Amount</label>
+                  <input type="number" id="duesAmount" name="duesAmount" class="form-control" step="0.01" min="0" placeholder="0.00" value="<%= (typeof member !== 'undefined' && member && member.duesAmount) ? member.duesAmount : '' %>" data-testid="input-dues-amount">
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label" for="duesFrequency">Frequency</label>
+                  <select id="duesFrequency" name="duesFrequency" class="form-control" data-testid="select-dues-frequency">
+                    <option value="monthly" <%= (typeof member === 'undefined' || !member || member.duesFrequency === 'monthly') ? 'selected' : '' %>>Monthly</option>
+                    <option value="quarterly" <%= (typeof member !== 'undefined' && member && member.duesFrequency === 'quarterly') ? 'selected' : '' %>>Quarterly</option>
+                    <option value="annual" <%= (typeof member !== 'undefined' && member && member.duesFrequency === 'annual') ? 'selected' : '' %>>Annually</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="flex gap-3 mt-6">
+                <a href="/admin/members" class="btn btn-secondary" data-testid="button-cancel">Cancel</a>
+                <button type="submit" class="btn btn-primary flex-1" data-testid="button-save">
+                  <%= typeof isEdit !== 'undefined' && isEdit ? 'Save Changes' : 'Create Member' %>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var copyCheckbox = document.getElementById('sameAsFamilyAddress');
+  var copySelect = document.getElementById('copyFromFamily');
+  
+  if (copyCheckbox && copySelect) {
+    copySelect.addEventListener('change', function() {
+      if (this.value && copyCheckbox.checked) {
+        var option = this.options[this.selectedIndex];
+        document.getElementById('addressLine1').value = option.dataset.address1 || '';
+        document.getElementById('addressLine2').value = option.dataset.address2 || '';
+        document.getElementById('city').value = option.dataset.city || '';
+        document.getElementById('county').value = option.dataset.county || '';
+        document.getElementById('postcode').value = option.dataset.postcode || '';
+        document.getElementById('country').value = option.dataset.country || 'UK';
+      }
+    });
+    
+    copyCheckbox.addEventListener('change', function() {
+      if (this.checked && copySelect.value) {
+        copySelect.dispatchEvent(new Event('change'));
+      }
+    });
+  }
+  
+  // First-login link generation
+  var generateBtn = document.getElementById('generate-login-link-btn');
+  var resultDiv = document.getElementById('login-link-result');
+  var linkInput = document.getElementById('login-link-input');
+  var copyBtn = document.getElementById('copy-link-btn');
+  var expirySpan = document.getElementById('link-expiry');
+  
+  if (generateBtn) {
+    generateBtn.addEventListener('click', async function() {
+      var memberId = '<%= typeof member !== "undefined" && member ? member.id : "" %>';
+      if (!memberId) return;
+      
+      generateBtn.disabled = true;
+      generateBtn.textContent = 'Generating...';
+      
+      try {
+        var res = await fetch('/api/admin/members/' + memberId + '/first-login-link', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        var data = await res.json();
+        
+        if (data.ok) {
+          linkInput.value = data.link;
+          expirySpan.textContent = new Date(data.expiresAt).toLocaleString();
+          resultDiv.style.display = 'block';
+          generateBtn.textContent = 'Regenerate Link';
+        } else {
+          alert(data.message || 'Failed to generate link');
+          generateBtn.textContent = 'Generate Login Link';
+        }
+      } catch (err) {
+        alert('Network error. Please try again.');
+        generateBtn.textContent = 'Generate Login Link';
+      }
+      
+      generateBtn.disabled = false;
+    });
+  }
+  
+  if (copyBtn && linkInput) {
+    copyBtn.addEventListener('click', function() {
+      linkInput.select();
+      navigator.clipboard.writeText(linkInput.value).then(function() {
+        copyBtn.textContent = 'Copied!';
+        setTimeout(function() { copyBtn.textContent = 'Copy'; }, 2000);
+      });
+    });
+  }
+});
+</script>
+</body>
+</html>

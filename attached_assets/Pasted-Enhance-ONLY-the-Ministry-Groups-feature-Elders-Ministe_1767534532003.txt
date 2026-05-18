@@ -1,0 +1,52 @@
+Enhance ONLY the Ministry Groups feature (Elders&Ministers, TNT, Jesus School, Core Leaders): allow adding/removing members to each group and show membership summary in the “All Groups” tab.
+
+Hard rules:
+- Do NOT change unrelated modules (meetings, attendance, prayer, dues, etc).
+- Do NOT redesign UI; minimal form additions are fine.
+- Do NOT rename routes unless broken; keep current routes.
+- Touch ONLY:
+  (1) groups pages (All Groups + Group Detail),
+  (2) group membership DB queries/models,
+  (3) minimal templates/components for group member management.
+
+Assumptions:
+- There is a groups table (or equivalent) and a member_groups join table (or equivalent). If member_groups does not exist, create it with:
+  member_groups(group_id, member_id, church_id, created_at) with unique(group_id, member_id).
+- Members table exists and already supports prayer_cell/unit and address etc.
+
+Tasks:
+
+1) Group Detail page (for each group):
+- Add a “Members in this group” section:
+  - list assigned members (name, phone, prayer cell)
+  - each row has a “Remove” button
+- Add “Add member to group” control:
+  Option A (preferred for low effort): dropdown of members not already in this group + Add button
+  Option B: search box + Add (if search already exists in project)
+- On add:
+  - insert into member_groups (use parameterized SQL)
+  - enforce church_id scoping
+  - handle duplicate gracefully (no crash)
+- On remove:
+  - delete from member_groups
+
+2) All Groups tab summary:
+- For each group card/row, show:
+  - total members count in group
+  - optionally show top 5 member names (comma-separated) with “+N more”
+- Ensure summary updates immediately after add/remove.
+
+3) Scoping and permissions:
+- Only admin can add/remove members from groups.
+- All queries must filter by church_id (same approach used elsewhere in admin).
+
+Acceptance checks (must pass):
+- I can open Elders&Ministers group page -> add a member -> member appears in list.
+- I can remove a member -> it disappears.
+- All Groups tab shows updated member count for that group.
+- No other pages changed.
+
+After finishing, output:
+- URLs to test (All Groups + one Group page)
+- Files changed
+- Any DB migration SQL added (only if member_groups was missing)

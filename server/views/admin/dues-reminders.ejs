@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dues Reminders - HFNI Connect</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="admin-layout">
+  <%- include('./partials/sidebar', { currentPage: 'dues-reminders' }) %>
+  
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1 class="text-xl font-semibold">Monthly Contribution Reminders</h1>
+      <div class="text-sm text-secondary"><%= typeof staffName !== 'undefined' ? staffName : 'Admin' %></div>
+    </header>
+    
+    <div class="admin-content">
+      <% if (typeof message !== 'undefined' && message) { %>
+      <div class="alert alert-success mb-4" data-testid="alert-success">
+        <%= message %>
+      </div>
+      <% } %>
+      
+      <% if (typeof error !== 'undefined' && error) { %>
+      <div class="alert alert-error mb-4" data-testid="alert-error">
+        <%= error %>
+      </div>
+      <% } %>
+      
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="card-title"><%= typeof currentMonth !== 'undefined' ? currentMonth : 'Current Month' %></h2>
+        </div>
+        <div class="card-body">
+          <div class="flex gap-4 flex-wrap">
+            <a href="/admin/dues/reminders?tab=families" class="btn <%= (typeof tab === 'undefined' || tab === 'families') ? 'btn-primary' : 'btn-outline' %>" data-testid="tab-families">
+              Families
+            </a>
+            <a href="/admin/dues/reminders?tab=individuals" class="btn <%= tab === 'individuals' ? 'btn-primary' : 'btn-outline' %>" data-testid="tab-individuals">
+              Individuals
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="card">
+          <div class="card-body text-center">
+            <div class="text-3xl font-bold text-danger" data-testid="text-unpaid-count"><%= typeof unpaidCount !== 'undefined' ? unpaidCount : 0 %></div>
+            <div class="text-secondary text-sm">Unpaid <%= (typeof tab !== 'undefined' && tab === 'individuals') ? 'Individuals' : 'Families' %></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-body text-center">
+            <div class="text-3xl font-bold text-success" data-testid="text-eligible-count"><%= typeof eligibleCount !== 'undefined' ? eligibleCount : 0 %></div>
+            <div class="text-secondary text-sm">Eligible for SMS</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-body text-center">
+            <div class="text-3xl font-bold text-secondary" data-testid="text-reminders-sent"><%= typeof remindersAlreadySent !== 'undefined' ? remindersAlreadySent : 0 %></div>
+            <div class="text-secondary text-sm">Reminders Sent This Month</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card mb-6">
+        <div class="card-header">
+          <h3>Send Reminders</h3>
+          <p class="text-secondary text-sm mt-1">Send polite reminder notifications to <%= (typeof tab !== 'undefined' && tab === 'individuals') ? 'individuals' : 'families' %> who have not paid this month</p>
+        </div>
+        <div class="card-body">
+          <form method="POST" action="/admin/dues/reminders/send?tab=<%= typeof tab !== 'undefined' ? tab : 'families' %>" data-testid="form-send-reminders">
+            <input type="hidden" name="tab" value="<%= typeof tab !== 'undefined' ? tab : 'families' %>">
+            <div class="form-group">
+              <label class="form-label" for="templateKey">Reminder message</label>
+              <select id="templateKey" name="templateKey" class="form-control" data-testid="select-template" <%= (typeof eligibleCount === 'undefined' || eligibleCount === 0) ? 'disabled' : '' %>>
+                <% if (typeof templates !== 'undefined' && templates.length > 0) { %>
+                  <% templates.forEach(function(t, index) { %>
+                    <option value="<%= t.key %>" <%= index === 0 ? 'selected' : '' %>><%= t.preview %></option>
+                  <% }); %>
+                <% } else { %>
+                  <option value="">No templates available</option>
+                <% } %>
+              </select>
+              <p class="form-hint">Select a polite reminder message to send</p>
+            </div>
+            
+            <% if (typeof eligibleCount !== 'undefined' && eligibleCount > 0) { %>
+            <button type="submit" class="btn btn-primary" data-testid="button-send-reminders">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+              </svg>
+              Send Reminders to <%= eligibleCount %> <%= (typeof tab !== 'undefined' && tab === 'individuals') ? 'Individual' : 'Familie' %><%= eligibleCount !== 1 ? 's' : '' %>
+            </button>
+            <% } else { %>
+            <button type="button" class="btn btn-secondary" disabled data-testid="button-send-reminders-disabled">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+              </svg>
+              No Eligible <%= (typeof tab !== 'undefined' && tab === 'individuals') ? 'Individuals' : 'Families' %> to Remind
+            </button>
+            <p class="text-secondary text-sm mt-2">All entries have either already received reminders this month or have no valid contact.</p>
+            <% } %>
+          </form>
+        </div>
+      </div>
+      
+      <% if (typeof tab === 'undefined' || tab === 'families') { %>
+      <div class="card">
+        <div class="card-header">
+          <h3>Unpaid Families</h3>
+          <p class="text-secondary text-sm mt-1">Families who have not paid for this month (max 2 reminders per month)</p>
+        </div>
+        <div class="card-body">
+          <% if (typeof unpaidWithContacts !== 'undefined' && unpaidWithContacts.length > 0) { %>
+          <div class="table-container">
+            <table class="table" data-testid="table-unpaid">
+              <thead>
+                <tr>
+                  <th>Family</th>
+                  <th>Due Amount</th>
+                  <th>Contact</th>
+                  <th>Reminders Sent</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% unpaidWithContacts.forEach(function(item) { %>
+                <tr data-testid="row-family-<%= item.family.id %>">
+                  <td><%= item.family.name %></td>
+                  <td><%= item.family.dueAmount ? '£' + item.family.dueAmount : '-' %></td>
+                  <td>
+                    <% if (item.contactName && item.contactPhone) { %>
+                      <%= item.contactName %>
+                      <div class="text-xs text-secondary"><%= item.contactPhone %></div>
+                    <% } else if (item.contact) { %>
+                      <%= item.contact.firstName %> <%= item.contact.lastName %>
+                      <div class="text-xs text-secondary"><%= item.contact.phone %></div>
+                    <% } else { %>
+                      <span class="text-secondary">-</span>
+                    <% } %>
+                  </td>
+                  <td>
+                    <span class="badge <%= item.remindersThisMonth >= 2 ? 'badge-secondary' : 'badge-primary' %>">
+                      <%= item.remindersThisMonth %> / 2
+                    </span>
+                  </td>
+                  <td>
+                    <% if (item.eligible) { %>
+                      <span class="badge badge-success">Eligible</span>
+                    <% } else { %>
+                      <span class="badge badge-secondary" title="<%= item.skipReason %>">
+                        <%= item.skipReason %>
+                      </span>
+                    <% } %>
+                  </td>
+                </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+          <% } else { %>
+          <p class="text-secondary text-center py-4">All families have paid for this month!</p>
+          <% } %>
+        </div>
+      </div>
+      <% } else { %>
+      <div class="card">
+        <div class="card-header">
+          <h3>Unpaid Individuals</h3>
+          <p class="text-secondary text-sm mt-1">Individual members who have not paid for this month (max 2 reminders per month)</p>
+        </div>
+        <div class="card-body">
+          <% if (typeof unpaidIndividuals !== 'undefined' && unpaidIndividuals.length > 0) { %>
+          <div class="table-container">
+            <table class="table" data-testid="table-unpaid-individuals">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Phone</th>
+                  <th>Due Amount</th>
+                  <th>Reminders Sent</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% unpaidIndividuals.forEach(function(item) { %>
+                <tr data-testid="row-member-<%= item.member.id %>">
+                  <td><%= item.member.firstName %> <%= item.member.lastName %></td>
+                  <td><%= item.member.phone %></td>
+                  <td><%= item.member.duesAmount ? '£' + item.member.duesAmount : '-' %></td>
+                  <td>
+                    <span class="badge <%= item.remindersThisMonth >= 2 ? 'badge-secondary' : 'badge-primary' %>">
+                      <%= item.remindersThisMonth %> / 2
+                    </span>
+                  </td>
+                  <td>
+                    <% if (item.eligible) { %>
+                      <span class="badge badge-success">Eligible</span>
+                    <% } else { %>
+                      <span class="badge badge-secondary" title="<%= item.skipReason %>">
+                        <%= item.skipReason %>
+                      </span>
+                    <% } %>
+                  </td>
+                </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+          <% } else { %>
+          <p class="text-secondary text-center py-4">All individuals have paid for this month!</p>
+          <% } %>
+        </div>
+      </div>
+      <% } %>
+      
+      <div class="mt-4">
+        <a href="/admin/dues" class="btn btn-secondary" data-testid="button-back">Back to Dues</a>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

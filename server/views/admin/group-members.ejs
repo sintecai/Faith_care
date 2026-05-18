@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= group.name %> - HFNI Connect Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="admin-layout">
+  <%- include('./partials/sidebar', { currentPage: typeof nameFilter !== 'undefined' && nameFilter ? nameFilter : 'groups' }) %>
+  
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1 class="text-xl font-semibold"><%= group.name %></h1>
+      <div class="text-sm text-secondary"><%= typeof staffName !== 'undefined' ? staffName : 'Admin' %></div>
+    </header>
+    
+    <div class="admin-content">
+      <% if (typeof nameFilter === 'undefined' || !nameFilter) { %>
+      <div class="flex justify-between items-center gap-4 mb-6 flex-wrap">
+        <a href="/admin/groups" class="btn btn-secondary" data-testid="button-back">Back to Groups</a>
+      </div>
+      <% } %>
+      
+      <% if (typeof message !== 'undefined' && message) { %>
+        <div class="alert alert-success"><%= message %></div>
+      <% } %>
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+      
+      <div class="grid grid-cols-2 gap-6">
+        <div class="card">
+          <div class="card-header">
+            <h3>Add Member</h3>
+          </div>
+          <div class="card-body">
+            <% if (availableMembers.length === 0) { %>
+              <p class="text-secondary">All active members are already in this group.</p>
+            <% } else { %>
+              <form method="POST" action="/admin/groups/<%= group.id %>/members/add<%= typeof nameFilter !== 'undefined' && nameFilter ? '?from=' + nameFilter : '' %>">
+                <div class="form-group">
+                  <label class="form-label" for="memberId">Select Member</label>
+                  <select id="memberId" name="memberId" class="form-control" required data-testid="select-member">
+                    <option value="">Choose a member...</option>
+                    <% availableMembers.forEach(function(m) { %>
+                      <option value="<%= m.id %>"><%= m.firstName %> <%= m.lastName %></option>
+                    <% }); %>
+                  </select>
+                </div>
+                <button type="submit" class="btn btn-primary" data-testid="button-add-member">Add to Group</button>
+              </form>
+            <% } %>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="card-header flex justify-between items-center gap-4">
+            <h3>Current Members (<%= groupMembers.length %>)</h3>
+          </div>
+          <div class="card-body">
+            <% if (groupMembers.length === 0) { %>
+              <p class="text-secondary">No members in this group yet.</p>
+            <% } else { %>
+              <div class="flex flex-col gap-2">
+                <% groupMembers.forEach(function(m) { %>
+                  <div class="flex justify-between items-center gap-4 p-3" style="background: var(--bg); border-radius: var(--radius);" data-testid="member-row-<%= m.id %>">
+                    <div class="flex-1">
+                      <div class="font-medium"><%= m.firstName %> <%= m.lastName %></div>
+                      <div class="text-sm text-secondary"><%= m.phone || 'No phone' %> &bull; <%= m.unitName || 'No Prayer Cell' %></div>
+                    </div>
+                    <form method="POST" action="/admin/groups/<%= group.id %>/members/<%= m.id %>/remove<%= typeof nameFilter !== 'undefined' && nameFilter ? '?from=' + nameFilter : '' %>" onsubmit="return confirm('Remove this member from the group?');">
+                      <button type="submit" class="btn btn-danger btn-sm" data-testid="button-remove-<%= m.id %>">Remove</button>
+                    </form>
+                  </div>
+                <% }); %>
+              </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

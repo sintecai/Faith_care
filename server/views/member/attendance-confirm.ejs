@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attendance - HFNI Connect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="member-page hfni-themed">
+  <!-- Mobile Navigation -->
+  <%- include('../partials/member-mobile-nav') %>
+  
+  <div class="member-header">
+    <div class="member-header-inner">
+      <!-- Mobile hamburger button -->
+      <button id="mobile-menu-btn" class="mobile-menu-btn" data-testid="button-mobile-menu" aria-label="Open menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      
+      <a href="/home" class="member-logo" data-testid="link-home"><%= typeof churchName !== 'undefined' ? churchName : 'HFNI Connect' %></a>
+      <div class="flex items-center gap-3">
+        <span class="text-sm text-secondary"><%= typeof memberName !== 'undefined' ? memberName : '' %></span>
+        <a href="/logout" class="btn btn-primary btn-sm desktop-only" data-testid="button-logout">Logout</a>
+      </div>
+    </div>
+  </div>
+  
+  <div class="member-content">
+    <div class="member-card">
+      <div class="card">
+        <div class="card-body p-8 text-center">
+          <% if (typeof success !== 'undefined' && success) { %>
+          <div class="success-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <h2 class="text-xl mb-2">Attendance Marked!</h2>
+          <p class="text-secondary mb-6">Your attendance for <strong><%= typeof eventTitle !== 'undefined' ? eventTitle : '' %></strong> has been recorded.</p>
+          <% } else { %>
+          <div class="error-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="15" y1="9" x2="9" y2="15"/>
+              <line x1="9" y1="9" x2="15" y2="15"/>
+            </svg>
+          </div>
+          <h2 class="text-xl mb-2">Unable to Mark Attendance</h2>
+          <p class="text-secondary mb-6"><%= typeof error !== 'undefined' && error ? error : 'Something went wrong. Please try again.' %></p>
+          <% } %>
+          
+          <a href="/home" class="btn btn-primary" data-testid="button-done">
+            Back to Home
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

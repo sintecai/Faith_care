@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pastors - HFNI Connect Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="admin-layout">
+  <%- include('./partials/sidebar', { currentPage: 'pastors' }) %>
+  
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1 class="text-xl font-semibold">Pastors</h1>
+      <div class="text-sm text-secondary"><%= typeof staffName !== 'undefined' ? staffName : 'Admin' %></div>
+    </header>
+    
+    <div class="admin-content">
+      <div class="flex justify-between items-center gap-4 mb-6">
+        <div></div>
+        <a href="/admin/pastors/new" class="btn btn-primary" data-testid="button-add-pastor">Add Pastor</a>
+      </div>
+      
+      <% if (typeof message !== 'undefined' && message) { %>
+        <div class="alert alert-success"><%= message %></div>
+      <% } %>
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+      
+      <% if (typeof pastors === 'undefined' || pastors.length === 0) { %>
+        <div class="empty-state">
+          <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <p>No pastors found</p>
+          <a href="/admin/pastors/new" class="btn btn-primary mt-4">Add First Pastor</a>
+        </div>
+      <% } else { %>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% pastors.forEach(function(p) { %>
+              <tr data-testid="row-pastor-<%= p.id %>">
+                <td><%= p.name %></td>
+                <td><%= p.phone || '-' %></td>
+                <td><%= p.email || '-' %></td>
+                <td>
+                  <span class="badge <%= p.isActive ? 'badge-success' : 'badge-secondary' %>">
+                    <%= p.isActive ? 'Active' : 'Inactive' %>
+                  </span>
+                </td>
+                <td>
+                  <div class="flex gap-2">
+                    <a href="/admin/pastors/<%= p.id %>/edit" class="btn btn-secondary btn-sm" data-testid="button-edit-<%= p.id %>">Edit</a>
+                    <form method="POST" action="/admin/pastors/<%= p.id %>/delete" onsubmit="return confirm('Are you sure you want to delete this pastor?');">
+                      <button type="submit" class="btn btn-danger btn-sm" data-testid="button-delete-<%= p.id %>">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,81 @@
+Extend ONLY the Attendance Report feature to support predefined follow-up message templates for absentees.
+
+Hard rules:
+- Do NOT implement SMS sending.
+- Do NOT touch Twilio or messaging delivery.
+- Do NOT redesign UI.
+- Touch ONLY:
+  (1) attendance report admin page,
+  (2) message templates data (static or DB),
+  (3) queue logic for absentees.
+
+Goal:
+Allow admin to select a caring message template (15–20 options) when queuing follow-up messages to absentees.
+
+------------------------------------------------
+1) MESSAGE TEMPLATES
+------------------------------------------------
+Create 15–20 predefined “care” message templates.
+Tone: pastoral, caring, non-judgmental.
+
+Examples (use similar wording, do not overthink):
+
+1. "Hi {{name}}, we missed you at today’s meeting. Hope everything is okay. Please let us know if you need prayer or support."
+2. "Hello {{name}}, just checking in—we noticed you couldn’t make it to the meeting. You were missed."
+3. "Dear {{name}}, hope you are doing well. We missed seeing you at the meeting today."
+4. "Hi {{name}}, just a gentle note to say we missed you at the meeting. Is everything alright?"
+5. "Hello {{name}}, we missed you at today’s gathering. We’re keeping you in our prayers."
+6. "Dear {{name}}, you were missed at the meeting today. Hope all is well with you and your family."
+7. "Hi {{name}}, just reaching out to check in after today’s meeting. We missed you."
+8. "Hello {{name}}, we noticed you weren’t able to attend today’s meeting. Hope everything is okay."
+9. "Dear {{name}}, sending love—we missed you at the meeting today."
+10. "Hi {{name}}, we missed you at today’s meeting. Let us know if there’s anything we can pray for."
+11. "Hello {{name}}, hope you’re doing well. We missed seeing you at the meeting."
+12. "Dear {{name}}, we missed you at today’s meeting and wanted to check in with you."
+13. "Hi {{name}}, just checking in after the meeting today—we missed you."
+14. "Hello {{name}}, hope all is well. You were missed at today’s meeting."
+15. "Dear {{name}}, we noticed you weren’t at the meeting today. Hope everything is okay."
+
+Use {{name}} placeholder.
+
+Store templates as:
+- a simple in-code array OR
+- a message_templates table (only if already using DB patterns)
+
+------------------------------------------------
+2) ADMIN UI (MINIMAL)
+------------------------------------------------
+On the Attendance Report page:
+- Add a dropdown labeled “Follow-up message”
+- Populate dropdown with the 15–20 templates (show first 50–60 chars)
+- Default select the first template
+
+------------------------------------------------
+3) QUEUE LOGIC (EXTEND EXISTING)
+------------------------------------------------
+When admin clicks “Queue follow-up messages”:
+- Use the selected template
+- Replace {{name}} with member.first_name
+- Create outbound_messages rows (or logs) for absentees
+- Store template_key or template_text with the queued message
+
+------------------------------------------------
+4) SAFETY
+------------------------------------------------
+- Prevent duplicate queueing for same event + member + template
+- Only queue for members with:
+  - active = true
+  - consent_sms = true (if exists)
+  - phone not null
+
+------------------------------------------------
+ACCEPTANCE CHECKS
+------------------------------------------------
+- Admin can see message dropdown with multiple caring messages
+- Admin selects one template
+- Absentees get queued messages using selected wording
+- No SMS is actually sent yet
+
+After completion, output:
+- Where templates are defined
+- Files changed

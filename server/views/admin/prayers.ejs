@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prayer Requests - HFNI Connect Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="admin-layout">
+  <%- include('./partials/sidebar', { currentPage: 'prayers' }) %>
+  
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1 class="text-xl font-semibold">Prayer Requests</h1>
+      <div class="text-sm text-secondary"><%= typeof staffName !== 'undefined' ? staffName : 'Admin' %></div>
+    </header>
+    
+    <div class="admin-content">
+      <div class="flex justify-between items-center gap-4 mb-6">
+        <div class="flex gap-2">
+          <a href="/admin/prayers" class="btn <%= !(typeof status !== 'undefined' && status) ? 'btn-primary' : 'btn-secondary' %> btn-sm" data-testid="filter-all">All</a>
+          <a href="/admin/prayers?status=new" class="btn <%= (typeof status !== 'undefined' && status === 'new') ? 'btn-primary' : 'btn-secondary' %> btn-sm" data-testid="filter-new">New</a>
+          <a href="/admin/prayers?status=accepted" class="btn <%= (typeof status !== 'undefined' && status === 'accepted') ? 'btn-primary' : 'btn-secondary' %> btn-sm" data-testid="filter-accepted">Accepted</a>
+          <a href="/admin/prayers?status=closed" class="btn <%= (typeof status !== 'undefined' && status === 'closed') ? 'btn-primary' : 'btn-secondary' %> btn-sm" data-testid="filter-closed">Closed</a>
+        </div>
+      </div>
+      
+      <% if (typeof message !== 'undefined' && message) { %>
+        <div class="alert alert-success"><%= message %></div>
+      <% } %>
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+      
+      <% if (typeof requests === 'undefined' || requests.length === 0) { %>
+        <div class="empty-state">
+          <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          <p>No prayer requests <%= (typeof status !== 'undefined' && status) ? 'with status "' + status + '"' : '' %></p>
+        </div>
+      <% } else { %>
+        <div class="grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));">
+          <% requests.forEach(function(r) { %>
+          <div class="card" data-testid="card-prayer-<%= r.id %>">
+            <div class="card-body">
+              <div class="flex justify-between items-start gap-2 mb-3">
+                <div>
+                  <span class="font-medium"><%= r.memberName %></span>
+                  <span class="text-sm text-secondary ml-2"><%= r.unitName || '' %></span>
+                </div>
+                <span class="badge <%= r.status === 'new' ? 'badge-primary' : r.status === 'accepted' ? 'badge-warning' : 'badge-success' %>">
+                  <%= r.status %>
+                </span>
+              </div>
+              <p class="text-sm mb-3" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                <%= r.requestText %>
+              </p>
+              <div class="text-xs text-secondary mb-4">
+                <%= new Date(r.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) %>
+                <%= r.pastorName ? ' | Assigned to ' + r.pastorName : '' %>
+              </div>
+              <div class="flex gap-2">
+                <% if (r.status === 'new') { %>
+                  <form method="POST" action="/admin/prayers/<%= r.id %>/accept" class="flex-1">
+                    <% if (typeof pastors !== 'undefined' && pastors.length > 1) { %>
+                    <select name="pastorId" class="form-control mb-2" required data-testid="select-pastor-<%= r.id %>">
+                      <option value="">Assign pastor...</option>
+                      <% pastors.forEach(function(p) { %>
+                        <option value="<%= p.id %>"><%= p.name %></option>
+                      <% }); %>
+                    </select>
+                    <% } else if (typeof pastors !== 'undefined' && pastors.length === 1) { %>
+                      <input type="hidden" name="pastorId" value="<%= pastors[0].id %>">
+                    <% } %>
+                    <button type="submit" class="btn btn-success btn-sm btn-block" data-testid="button-accept-<%= r.id %>">Accept</button>
+                  </form>
+                <% } else if (r.status === 'accepted') { %>
+                  <form method="POST" action="/admin/prayers/<%= r.id %>/close" class="flex-1">
+                    <button type="submit" class="btn btn-primary btn-sm btn-block" data-testid="button-close-<%= r.id %>">Close</button>
+                  </form>
+                <% } %>
+              </div>
+            </div>
+          </div>
+          <% }); %>
+        </div>
+      <% } %>
+    </div>
+  </main>
+</div>
+</body>
+</html>

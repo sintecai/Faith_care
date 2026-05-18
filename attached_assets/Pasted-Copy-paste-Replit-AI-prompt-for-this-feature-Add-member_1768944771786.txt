@@ -1,0 +1,85 @@
+Copy-paste Replit AI prompt for this feature
+
+Add member Birthday and Wedding Anniversary tracking + daily admin notifications, with minimal safe changes.
+
+1) Database (additive only)
+
+In the existing members table (or whichever table stores member profiles), add nullable fields:
+
+date_of_birth DATE NULL
+
+wedding_anniversary DATE NULL
+Create and run a safe migration (do not affect existing data).
+
+2) Member details UI (admin + member view)
+
+In Member Details (admin side) add fields to view/edit:
+
+Date of Birth (date picker)
+
+Wedding Anniversary (date picker)
+
+In member profile view, show these fields only if present.
+Do not change layouts drastically.
+
+3) Daily celebration detection
+
+Each day, find members whose birthday or anniversary matches today’s month/day.
+
+Ignore year for matching (compare month/day only).
+
+Handle leap day birthdays sensibly (if Feb 29, show on Feb 28 in non-leap years OR only on Feb 29—pick one and document it).
+Use Europe/London timezone for “today”.
+
+4) Notify admin inside the app
+
+Create an in-app admin notification: “Today’s Birthdays/Anniversaries”
+
+Notification should include a count and link to a “Celebrations Today” view listing members.
+
+For each listed member add actions:
+
+“Send Message” (use existing in-app messaging/chat system to open conversation)
+
+Optional quick template message buttons (birthday/anniversary)
+
+5) Popup alert for admin
+
+When an admin logs in (or opens dashboard), if there are celebrations today:
+
+Show a toast/modal popup: “X celebrations today” with “View” button
+
+Do not spam: show once per day per admin (store last_shown_date in localStorage or DB).
+
+6) Email support (optional but implementable now)
+
+Add server-side email sending using ONE provider (choose a simple one like Resend or SendGrid).
+
+Add env vars for API key and FROM email.
+
+Send a daily email to admin(s) listing today’s birthdays/anniversaries.
+
+Also add an option in Admin Celebrations view: “Email this list to admin”.
+
+Scheduling (important)
+
+Implement a daily scheduled job at 08:00 Europe/London to create/send admin notifications and (if enabled) emails.
+If the hosting environment doesn’t support cron reliably, implement a fallback “run once per day on first admin visit” trigger.
+
+Constraints:
+
+Do NOT remove existing features.
+
+Minimal UI changes only.
+
+Reuse existing notifications + messaging wherever possible.
+
+Output:
+
+List files changed
+
+List DB migrations
+
+Explain how the daily job is triggered in production
+
+Explain where to configure email provider keys

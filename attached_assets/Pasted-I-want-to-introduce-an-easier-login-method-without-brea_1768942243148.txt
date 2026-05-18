@@ -1,0 +1,152 @@
+I want to introduce an easier login method without breaking the existing app.
+Do NOT remove or modify the existing Twilio OTP login flow. Keep it working exactly as-is for dev/testing.
+
+Goal (Add-only, safe)
+
+Admin creates member accounts (already exists).
+
+Admin can generate a First-Time Login Link for a member.
+
+Member opens the link, sets a password once, and is logged in.
+
+Later the member logs in using phone/email + password (no OTP required).
+
+Twilio OTP remains available for dev/testing, but can be disabled in production via an env flag.
+
+Safety rules (must follow)
+
+Add new code only. Do NOT delete or rewrite existing OTP routes/components.
+
+All DB changes must be nullable and backwards compatible.
+
+Keep existing session/JWT/cookie login mechanism unchanged and reuse it for password login.
+
+If anything fails, OTP login should still work exactly the same as today.
+
+Step A — Feature flag for OTP (dev-only)
+
+Add environment variable: ENABLE_TWILIO_OTP
+
+Default: true in dev, false in production (document how to set this in Replit Secrets).
+
+Behavior:
+
+If ENABLE_TWILIO_OTP=false:
+
+Hide OTP login option from the UI
+
+Block OTP API endpoints with a clear JSON response: { error: "OTP login disabled" }
+
+If ENABLE_TWILIO_OTP=true: OTP login works unchanged.
+
+Step B — Minimal DB additions (nullable)
+
+In the existing table used for member authentication (members/users—use whichever the app already uses for login), add:
+
+password_hash TEXT NULL
+
+first_login_token_hash TEXT NULL (store hash, not raw token)
+
+first_login_expires_at TIMESTAMP NULL
+
+Do not create new tables unless absolutely required.
+
+Step C — Admin generates First-Time Login Link
+
+Add endpoint (admin-protected):
+
+POST /api/admin/members/:id/first-login-link
+
+Logic:
+
+Generate a secure random token (32+ bytes)
+
+Hash it (sha256 or bcrypt) and store in first_login_token_hash
+
+Set first_login_expires_at to now + 48 hours
+
+Return link: /first-login?token=<RAW_TOKEN>
+
+Admin UI:
+
+Add button “Generate First-Time Login Link” on Admin → Member details (or member list row action).
+
+Show a modal with:
+
+the link
+
+Copy button
+
+expiry message (“expires in 48 hours”)
+
+Do NOT implement sending email/SMS now. Just copy link.
+
+Step D — First login page: set password
+
+Create page route: /first-login
+
+Reads token from query params
+
+Form: password + confirm password
+
+Submits to: POST /api/auth/first-login/set-password
+
+Endpoint logic:
+
+Validate token hash matches and not expired
+
+Set password_hash using bcrypt (10–12 rounds)
+
+Clear first_login_token_hash and first_login_expires_at after success
+
+Log user in using the existing auth/session mechanism
+
+Redirect to member dashboard
+
+Step E — Password login (primary for production)
+
+Add endpoint:
+
+POST /api/auth/password-login
+Input: phone/email (whichever the system already uses as identifier) + password
+
+Validate user exists
+
+Ensure password_hash exists; if not, return message: “Use first login link or OTP”
+
+Compare bcrypt hash
+
+On success: create the same session/JWT/cookie used today
+
+Login UI:
+
+Add a “Login with Password” option (button/tab).
+
+Keep OTP login UI visible only if ENABLE_TWILIO_OTP=true.
+
+Step F — Member change password
+
+Add settings screen: “Change Password”
+
+Current password + new password + confirm
+
+Update bcrypt hash
+
+Keep UX minimal; no redesign.
+
+Output requirements
+
+After implementation, list:
+
+Exact file paths modified
+
+New endpoints added
+
+New pages/routes added
+
+DB migration details
+
+Confirm OTP login remains unchanged and still works when enabled
+
+Primary objective:
+Production login should work without Twilio payment using admin-generated first login links + password login.

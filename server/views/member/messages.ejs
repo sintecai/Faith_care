@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Messages - HFNI Connect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="member-page hfni-themed">
+  <!-- Mobile Navigation -->
+  <%- include('../partials/member-mobile-nav') %>
+  
+  <div class="member-header">
+    <div class="member-header-inner">
+      <!-- Mobile hamburger button -->
+      <button id="mobile-menu-btn" class="mobile-menu-btn" data-testid="button-mobile-menu" aria-label="Open menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      
+      <a href="/home" class="member-logo" data-testid="link-home">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Back
+      </a>
+      <span class="member-title">Messages</span>
+      <div class="flex items-center gap-3">
+        <a href="/logout" class="btn btn-primary btn-sm desktop-only" data-testid="button-logout">Logout</a>
+      </div>
+    </div>
+  </div>
+  
+  <div class="member-content">
+    <div class="member-dashboard">
+      <% if (typeof message !== 'undefined' && message) { %>
+        <div class="alert alert-success mb-4"><%= message %></div>
+      <% } %>
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-error mb-4"><%= error %></div>
+      <% } %>
+      
+      <div class="card mb-4">
+        <div class="card-header">
+          <h3 class="font-semibold">Start a New Conversation</h3>
+        </div>
+        <div class="card-body">
+          <form method="POST" action="/member/messages/new" data-testid="form-new-message">
+            <div class="form-group mb-3">
+              <label for="subject" class="form-label">Subject</label>
+              <input type="text" id="subject" name="subject" class="form-control" required maxlength="200" placeholder="What would you like to discuss?" data-testid="input-subject">
+            </div>
+            <div class="form-group mb-3">
+              <label for="body" class="form-label">Message</label>
+              <textarea id="body" name="body" class="form-control" rows="4" required placeholder="Write your message here..." data-testid="input-message-body"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary" data-testid="button-send-message">Send Message</button>
+          </form>
+        </div>
+      </div>
+      
+      <h3 class="font-semibold mb-3">Your Conversations</h3>
+      
+      <% if (typeof conversations !== 'undefined' && conversations.length > 0) { %>
+        <% conversations.forEach(function(conv) { %>
+          <a href="/member/messages/<%= conv.id %>" class="card card-link mb-3" data-testid="conversation-<%= conv.id %>">
+            <div class="card-body">
+              <div class="flex justify-between items-start gap-2 mb-2 flex-wrap">
+                <h4 class="font-medium"><%= conv.subject %></h4>
+                <span class="badge <%= conv.status === 'open' ? 'badge-success' : 'badge-secondary' %>"><%= conv.status === 'open' ? 'Open' : 'Closed' %></span>
+              </div>
+              <% if (conv.lastMessage) { %>
+                <p class="text-secondary text-sm mb-2 truncate-2"><%= conv.lastMessage.substring(0, 100) %><%= conv.lastMessage.length > 100 ? '...' : '' %></p>
+              <% } %>
+              <span class="text-sm text-muted">
+                Started <%= new Date(conv.createdAt || Date.now()).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) %>
+              </span>
+            </div>
+          </a>
+        <% }); %>
+      <% } else { %>
+        <div class="empty-state">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mb-4">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          <h3>No Conversations Yet</h3>
+          <p class="text-secondary">Start a conversation above to get in touch with church leadership.</p>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+</body>
+</html>

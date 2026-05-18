@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Messages - HFNI Connect Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="admin-layout">
+  <%- include('./partials/sidebar', { currentPage: 'messages' }) %>
+  
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1 class="text-xl font-semibold">Member Messages</h1>
+      <div class="text-sm text-secondary"><%= typeof staffName !== 'undefined' ? staffName : 'Admin' %></div>
+    </header>
+    
+    <div class="admin-content">
+      <% if (typeof message !== 'undefined' && message) { %>
+        <div class="alert alert-success mb-4"><%= message %></div>
+      <% } %>
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-error mb-4"><%= error %></div>
+      <% } %>
+      
+      <div class="flex gap-2 mb-4 flex-wrap">
+        <a href="/admin/messages" class="btn <%= typeof status === 'undefined' || !status ? 'btn-primary' : 'btn-secondary' %>" data-testid="button-filter-all">All</a>
+        <a href="/admin/messages?status=open" class="btn <%= status === 'open' ? 'btn-primary' : 'btn-secondary' %>" data-testid="button-filter-open">Open</a>
+        <a href="/admin/messages?status=closed" class="btn <%= status === 'closed' ? 'btn-primary' : 'btn-secondary' %>" data-testid="button-filter-closed">Closed</a>
+      </div>
+      
+      <% if (typeof conversations === 'undefined' || conversations.length === 0) { %>
+        <div class="empty-state">
+          <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          <p>No member conversations yet</p>
+          <p class="text-secondary mt-2">When members send messages, they will appear here.</p>
+        </div>
+      <% } else { %>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Subject</th>
+                <th>Member</th>
+                <th>Last Message</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% conversations.forEach(function(conv) { %>
+              <tr data-testid="row-conversation-<%= conv.id %>">
+                <td><a href="/admin/messages/<%= conv.id %>" class="link"><%= conv.subject %></a></td>
+                <td><%= conv.memberName || 'Unknown' %></td>
+                <td class="truncate-cell"><%= conv.lastMessage ? conv.lastMessage.substring(0, 50) + (conv.lastMessage.length > 50 ? '...' : '') : '-' %></td>
+                <td><span class="badge <%= conv.status === 'open' ? 'badge-success' : 'badge-secondary' %>"><%= conv.status === 'open' ? 'Open' : 'Closed' %></span></td>
+                <td><%= conv.createdAt ? new Date(conv.createdAt).toLocaleDateString('en-GB') : '-' %></td>
+                <td>
+                  <a href="/admin/messages/<%= conv.id %>" class="btn btn-sm btn-primary" data-testid="button-view-<%= conv.id %>">View</a>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </main>
+</div>
+</body>
+</html>

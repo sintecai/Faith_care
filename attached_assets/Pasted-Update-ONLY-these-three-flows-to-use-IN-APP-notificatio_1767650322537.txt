@@ -1,0 +1,118 @@
+Update ONLY these three flows to use IN-APP notifications (not SMS). Do not change other modules. Keep scope minimal and low-cost.
+
+FLOWS TO FIX:
+1) Dues reminders → in-app notifications
+2) Attendance follow-up (absentees care) → in-app notifications
+3) Announcements → in-app notifications to all members when published
+
+========================
+HARD RULES
+========================
+- Do NOT redesign UI.
+- Do NOT refactor unrelated code.
+- Do NOT remove existing SMS code; just stop using it for these flows.
+- Touch ONLY:
+  (1) the three admin actions/controllers that currently send/queue SMS,
+  (2) notifications DB writes,
+  (3) member notifications list page if needed to display new items.
+- All queries must be scoped by church_id.
+- No new dependencies.
+
+========================
+A) NOTIFICATIONS DATA MODEL
+========================
+Use the existing notifications tables in the project.
+If missing, create minimal tables (only if necessary):
+- notifications(notification_id uuid pk, church_id uuid, member_id uuid not null,
+               title text, body text, type text, created_at timestamptz default now())
+- notification_reads(notification_id uuid, member_id uuid, read_at timestamptz,
+                    unique(notification_id, member_id))
+
+Make sure member can see notifications on /member/notifications.
+
+========================
+B) DUES REMINDERS -> IN-APP
+========================
+Find the admin action that currently sends/queues dues reminders (e.g., POST /admin/dues/reminders/send).
+Change behavior:
+- For each UNPAID recipient (family primary contact member OR individual payer member):
+  - Create a notifications row for that member:
+    type = 'dues_reminder'
+    title = 'Contribution Reminder'
+    body = the selected reminder template (with placeholders replaced)
+- Do NOT create outbound_messages for dues reminders.
+- Do NOT send SMS.
+
+Also update /admin/dues/reminders page:
+- After sending, show summary:
+  “In-app reminders created: X, skipped: Y”
+- Skipped reasons: no linked recipient member, member inactive, no consent if enforced.
+
+Acceptance:
+- When admin clicks send reminders, members see the reminder under /member/notifications.
+
+========================
+C) FOLLOW-UP ABSENTEES -> IN-APP
+========================
+Find the admin action that currently queues/sends follow-up messages to absentees (attendance report).
+Change behavior:
+- For each absentee member:
+  - Create a notifications row:
+    type = 'care_followup'
+    title = 'We missed you'
+    body = the selected care template with {{name}} replaced
+- Do NOT queue outbound_messages.
+- Do NOT send SMS.
+
+Update admin report page summary:
+- “In-app care notifications created: X, skipped: Y”
+- Prevent duplicate sends:
+  - For same event + member + type, do not create duplicates.
+  - Use a dedupe key via template_key field if exists, or store meta like:
+    type='care_followup', and include event_id in body or in a new column (optional).
+  - Minimal acceptable: check existing notifications created today for same type+member+event.
+
+Acceptance:
+- Absentee member receives a notification in the app.
+
+========================
+D) ANNOUNCEMENTS -> IN-APP NOTIFICATIONS
+========================
+When admin publishes/posts an announcement:
+- Create an in-app notification for ALL active members:
+  type = 'announcement'
+  title = announcement.title
+  body = short snippet (first ~200 chars) + “Open Announcements for full details.”
+- Do NOT send SMS.
+- Prevent duplicate broadcast:
+  - Add announcements.notifications_sent_at timestamptz if missing OR
+  - check if notifications already exist for this announcement id before creating again.
+
+Member side:
+- /member/notifications should show these announcement notifications.
+- Announcements page can still exist; this is just the notification alert.
+
+Acceptance:
+- Posting an announcement creates notifications for all members.
+- Members can see it in /member/notifications.
+
+========================
+E) MEMBER NOTIFICATIONS PAGE MUST SHOW THESE TYPES
+========================
+Ensure /member/notifications lists notifications newest-first and shows:
+- type badge or label (Announcement / Reminder / Follow-up)
+- title + body snippet + created_at
+If page is missing, create minimal view without redesign.
+
+========================
+DELIVERABLES
+========================
+After implementing:
+- List the exact admin actions updated (routes)
+- Confirm no SMS is sent for these 3 flows
+- Provide test steps:
+  1) Publish announcement -> member sees notification
+  2) Send dues reminders -> unpaid member sees notification
+  3) Send absentee follow-up -> absentee sees notification
+- Files changed
+- Any migration added (only if required)

@@ -1,0 +1,59 @@
+Fix ONLY the MEMBER Carpooling page: “Request a ride” and “Offer a ride” buttons are not active, and the form fields (seats, pickup location, notes, etc.) are missing. Restore the previous working behavior.
+
+Hard rules:
+- Do NOT redesign UI.
+- Do NOT change DB schema.
+- Do NOT touch admin pages.
+- Touch ONLY:
+  (1) member carpooling page template/view,
+  (2) member carpooling routes/handlers,
+  (3) any client-side JS used by that page (if present).
+
+Tasks:
+1) Identify the member carpooling route (e.g., /member/carpooling or /member/rides).
+2) Ensure both actions are clickable and functional:
+   - “Offer a ride” opens a form or page and submits correctly.
+   - “Request a ride” opens a form or page and submits correctly.
+   Fix any causes of inactive buttons:
+   - disabled attribute accidentally set
+   - missing href/action
+   - CSS pointer-events:none overlay
+   - missing JS event handlers
+
+3) Restore the missing form fields on member side:
+   Offer a ride form must include:
+   - meeting/event selection (or current meeting if already in context)
+   - pickup_location / pickup_area (text)
+   - seats_available (number)
+   - notes (optional)
+   - submit
+
+   Request a ride form must include:
+   - meeting/event selection (or current meeting)
+   - pickup_location / pickup_area (text)
+   - notes (optional)
+   - submit
+
+4) Data wiring:
+   - Submissions must write to existing tables already used previously:
+     rides_offers (offer) and ride_requests (request)
+   - Keep church_id scoping
+   - After submit, redirect back to carpooling page with success message.
+
+5) Display:
+   - On carpooling page, show:
+     - Available ride offers for the selected meeting (pickup, seats)
+     - My requests/offers (optional if existed before)
+   - If no items, show “No rides yet”.
+
+Acceptance checks:
+- Buttons are clickable (not greyed out / not blocked).
+- Offer a ride shows seats + pickup location fields and saves.
+- Request a ride shows pickup location field and saves.
+- Member page shows saved offers/requests after submission.
+- No changes outside member carpooling.
+
+After completion, output:
+- Exact member URL to test
+- Which POST endpoints are used
+- Files changed

@@ -1,0 +1,118 @@
+Implement ONLY dues reminder recipients so reminders can be sent to:
+(A) each FAMILY using a dedicated family mobile number, and
+(B) INDIVIDUAL members who are not in any family (bachelors) but still owe contributions.
+
+Hard rules:
+- Do NOT redesign UI.
+- Touch ONLY:
+  (1) families DB + add/edit form,
+  (2) dues/reminders logic + page,
+  (3) minimal member dues fields (only if missing),
+  (4) outbound_messages + sending already used.
+- Keep existing paid/unpaid tracking (family_payments) intact.
+
+========================
+A) FAMILY MOBILE NUMBER (REQUIRED)
+========================
+1) Database:
+- Add to families table if missing:
+  - contact_phone text (E.164 preferred)
+  - contact_name text (optional)
+- Keep existing primary_member_id if present.
+
+2) Admin -> Families Add/Edit:
+- Add fields:
+  - Family Contact Phone (contact_phone)
+  - Family Contact Name (contact_name optional)
+- Validate: if contact_phone present it must start with "+" (E.164).
+- Show contact_phone in Families list + Family detail view.
+
+3) Reminder sending recipient for families:
+- When sending dues reminders for a family, send to:
+  - families.contact_phone if present
+  - ELSE fall back to primary_member_id phone if exists
+  - ELSE fall back to first family member with consent_sms + phone
+  - ELSE skip.
+
+========================
+B) BACHELORS / INDIVIDUAL MEMBERS DUES (REQUIRED)
+========================
+We need to include members not linked to any family but who owe contributions.
+
+1) Database:
+Add to members table if missing:
+- dues_amount numeric default 0
+- dues_frequency text default 'monthly'
+- dues_next_due_date date (optional)
+- dues_is_enabled boolean default false
+(Do NOT remove any existing fields.)
+
+2) Admin -> Members Add/Edit:
+- Add a small “Contribution Settings” section:
+  - Enable Individual Contribution (dues_is_enabled)
+  - Amount (dues_amount)
+  - Frequency (dues_frequency) default monthly
+- Only show this section if member has no family OR allow it always (but reminders only when no family).
+
+3) Determine “unpaid individual members”:
+- Member qualifies as “individual payer” if:
+  - member is active
+  - member has no family_members row (not linked to any family)
+  - member.dues_is_enabled = true
+  - member.dues_amount > 0
+- Paid/unpaid tracking for individuals:
+  - Create a table if missing: member_payments
+    columns:
+      payment_id uuid pk default gen_random_uuid()
+      church_id uuid not null
+      member_id uuid not null
+      period_year int not null
+      period_month int not null
+      amount numeric not null default 0
+      paid_at timestamptz default now()
+    unique(church_id, member_id, period_year, period_month)
+- Individual is PAID if member_payments exists for current year/month; otherwise UNPAID.
+
+4) Admin -> Dues Management page:
+- Add a tab/filter to view:
+  - Families (Paid/Unpaid)
+  - Individuals (Paid/Unpaid)
+- For Individuals list, show:
+  member name, phone, due amount, status, action Mark Paid (creates member_payments row)
+
+========================
+C) REMINDERS PAGE (SEND TO BOTH)
+========================
+Update /admin/dues/reminders:
+- Show counts:
+  - Unpaid Families
+  - Unpaid Individuals
+  - Eligible SMS total
+- List two sections:
+  1) Unpaid Families table (with recipient phone from contact_phone)
+  2) Unpaid Individuals table (with member phone)
+- Button: “Send reminders now”
+  - Sends to unpaid families and unpaid individuals
+  - Enforce max 2 reminders per month per recipient:
+    - For families: template_key dues_reminder:<YYYY-MM>:family:<family_id>
+    - For individuals: template_key dues_reminder:<YYYY-MM>:member:<member_id>
+  - Use selected message template with placeholders:
+    {{name}} (contact_name or member first name)
+    {{family}} (family_name or empty)
+    {{amount}} (dues_amount)
+    {{month}} (month name)
+
+Eligibility to send:
+- consent_sms must be true for member recipients if field exists.
+- For family contact_phone (non-member), allow sending without consent_sms OR add a family consent flag if present. If consent rules exist, follow them.
+
+Acceptance checks:
+1) Families have a contact phone field and it is used for reminders.
+2) Members without a family can be configured as “individual payer” and appear in dues.
+3) Reminders page sends to both unpaid families and unpaid individuals.
+4) No recipient gets more than 2 reminders per month (family and member tracked separately).
+
+After completion, output:
+- Files changed
+- New DB migrations (if any)
+- URLs to test (families edit, members edit, dues, dues/reminders)

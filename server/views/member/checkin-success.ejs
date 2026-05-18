@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Check-In Success - HFNI Connect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .member-page.hfni-themed.member-page-bg {
+      background: url('/images/member-bg.jpg') center center / cover no-repeat fixed !important;
+      position: relative;
+      min-height: 100vh;
+    }
+    .member-page.hfni-themed.member-page-bg::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.35);
+      z-index: 0;
+      pointer-events: none;
+    }
+    .member-page.hfni-themed.member-page-bg .member-header,
+    .member-page.hfni-themed.member-page-bg .member-content {
+      position: relative;
+      z-index: 1;
+    }
+    .member-page.hfni-themed.member-page-bg .member-header {
+      background: transparent !important;
+    }
+    .member-page.hfni-themed.member-page-bg .member-header .member-logo {
+      color: #ffffff !important;
+    }
+    .member-page.hfni-themed.member-page-bg .member-header .member-name {
+      color: rgba(255, 255, 255, 0.9) !important;
+    }
+    .success-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 1rem;
+      padding: 2rem;
+      max-width: 400px;
+      margin: 2rem auto;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+      text-align: center;
+    }
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      background: var(--success);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.5rem;
+    }
+    .success-icon svg {
+      width: 40px;
+      height: 40px;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+<div class="member-page hfni-themed member-page-bg">
+  <header class="member-header">
+    <div class="member-logo">HFNI Connect</div>
+    <div class="member-name"><%= typeof memberName !== 'undefined' ? memberName : '' %></div>
+  </header>
+  
+  <div class="member-content" style="padding: 1rem;">
+    <div class="success-card">
+      <div class="success-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+          <polyline points="20,6 9,17 4,12"/>
+        </svg>
+      </div>
+      
+      <h2 class="text-xl font-semibold mb-2">You're Checked In!</h2>
+      <p class="text-secondary mb-4">Your attendance has been recorded for:</p>
+      
+      <div style="background: var(--bg); border-radius: var(--radius); padding: 1rem; margin-bottom: 1.5rem;">
+        <div class="font-semibold"><%= event.title %></div>
+        <div class="text-sm text-secondary">
+          <%= new Date(event.eventDate).toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %>
+        </div>
+        <% if (event.location) { %>
+          <div class="text-sm text-secondary"><%= event.location %></div>
+        <% } %>
+      </div>
+      
+      <p class="text-xs text-secondary mb-4">
+        Checked in at <%= new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) %>
+      </p>
+      
+      <a href="/home" class="btn btn-primary btn-block" data-testid="button-back-home">Back to Home</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

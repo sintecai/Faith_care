@@ -1,0 +1,49 @@
+Published app loads routes but member/admin login does not persist (likely session cookie issue). Fix ONLY authentication/session persistence in production deployment. Do not add features.
+
+Hard rules:
+- No DB schema changes.
+- No UI redesign.
+- Touch ONLY server session/auth configuration and login handlers if necessary.
+- Keep all routes working.
+
+Tasks:
+
+1) Trust proxy (required on Replit Deploy)
+- In server startup, add:
+  app.set("trust proxy", 1)
+so secure cookies work behind Replit proxy.
+
+2) Fix session cookie settings for production HTTPS
+- Locate express-session (or equivalent) config and set:
+  - cookie.httpOnly = true
+  - cookie.secure = true ONLY when NODE_ENV === "production"
+  - cookie.sameSite = "lax" (preferred) OR "none" if cross-site is required
+  - cookie.maxAge = e.g. 30 days (or current desired)
+- Ensure SESSION_SECRET is required and app fails gracefully if missing.
+
+3) Ensure login handlers persist session before redirect
+- After setting session values (member/admin), ensure session is saved before redirect:
+  req.session.save(() => res.redirect(...))
+- Or use await if wrapped.
+
+4) Add minimal debug endpoints (temporary but useful)
+- GET /debug/cookies : returns JSON showing:
+  - NODE_ENV
+  - req.secure
+  - req.headers["x-forwarded-proto"]
+  - whether req.session exists
+  - session cookie options (do not show secret)
+- GET /debug/session : returns JSON showing current session keys (safe subset), e.g.:
+  { isAdmin: bool, memberId: ..., churchId: ... } or null if not logged in
+
+5) Verification steps (must pass on published domain)
+- Visit /debug/cookies and confirm x-forwarded-proto is https and session exists.
+- Perform member login; then /debug/session should show member session set.
+- Perform admin login; then /debug/session should show admin session set.
+- Member stays logged in when navigating to /home.
+- Admin stays logged in when navigating to /admin.
+
+Deliverables:
+- Files changed
+- Final session cookie settings used in production
+- URLs to test: /debug/cookies and /debug/session

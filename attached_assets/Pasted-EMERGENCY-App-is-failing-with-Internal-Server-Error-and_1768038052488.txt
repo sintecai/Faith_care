@@ -1,0 +1,52 @@
+EMERGENCY: App is failing with “Internal Server Error” and publish is buffering. Focus ONLY on restoring a working build/runtime. Do NOT add features. Do NOT refactor.
+
+Hard rules:
+- Do NOT change database schema.
+- Do NOT redesign UI.
+- Do NOT implement new functionality.
+- Touch ONLY what is necessary to fix the crash.
+- Add temporary diagnostics to locate the error, then remove noisy logs after fix.
+
+Tasks (do in this exact order):
+
+1) Find the real error
+- Run the app and reproduce the 500.
+- Check Replit console/server logs for the stack trace.
+- Identify the exact route causing the crash (e.g., /, /admin, /member, etc.).
+
+2) Add minimal global error logging (only if stack trace is not visible)
+- In Express, add a top-level error handler middleware that returns a friendly error page AND logs:
+  - error message
+  - stack trace
+  - request path
+- Ensure it does not expose secrets.
+
+3) Fix the root cause
+Common causes to check quickly:
+- Missing env var causing crash (DATABASE_URL, SESSION_SECRET, TWILIO keys, etc.)
+- A template/view file missing or renamed
+- Import path/module error after recent changes
+- DB query referencing a column/table that doesn’t exist (but do not migrate; instead guard/fallback)
+- Undefined variable in rendering page
+- Router not mounted correctly causing handler crash
+
+4) Ensure critical routes load
+Verify these return 200 without crashing:
+- GET / (or landing page)
+- GET /admin/login
+- GET /member/login (or member home if authenticated)
+If a non-critical route crashes (e.g., carpooling), temporarily disable that nav link so app works, but do not delete code.
+
+5) Publishing buffering
+- Ensure the dev server starts cleanly with no crash loops.
+- If publish depends on build, run build step and fix any TypeScript errors.
+- Remove any infinite loops / repeated errors spamming logs.
+
+Deliverables after fix:
+- What was the exact error (message + file + line)
+- What you changed to fix it
+- Files changed list
+- Confirmation that /admin/login and member login/home load without internal server error
+
+IMPORTANT:
+Do not continue feature work until app is stable again.

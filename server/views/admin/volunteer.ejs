@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Volunteer Board - HFNI Connect Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="admin-layout">
+  <%- include('./partials/sidebar', { currentPage: 'volunteer' }) %>
+  
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1 class="text-xl font-semibold">Volunteer Board</h1>
+      <div class="text-sm text-secondary"><%= typeof staffName !== 'undefined' ? staffName : 'Admin' %></div>
+    </header>
+    
+    <div class="admin-content">
+      <div class="flex justify-between items-center gap-4 mb-6">
+        <div></div>
+        <a href="/admin/volunteer/new" class="btn btn-primary" data-testid="button-add-request">New Request</a>
+      </div>
+      
+      <% if (typeof message !== 'undefined' && message) { %>
+        <div class="alert alert-success"><%= message %></div>
+      <% } %>
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+      
+      <% if (typeof requests === 'undefined' || requests.length === 0) { %>
+        <div class="empty-state">
+          <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <line x1="19" y1="8" x2="19" y2="14"/>
+            <line x1="22" y1="11" x2="16" y2="11"/>
+          </svg>
+          <p>No volunteer requests yet</p>
+          <a href="/admin/volunteer/new" class="btn btn-primary mt-4">Create First Request</a>
+        </div>
+      <% } else { %>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Event Date</th>
+                <th>Location</th>
+                <th>Needed</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% requests.forEach(function(r) { %>
+              <tr data-testid="row-request-<%= r.id %>">
+                <td><%= r.title %></td>
+                <td><%= r.eventDate ? new Date(r.eventDate).toLocaleDateString() : '-' %></td>
+                <td><%= r.location || '-' %></td>
+                <td><%= r.requiredVolunteers %></td>
+                <td>
+                  <span class="badge <%= r.status === 'open' ? 'badge-success' : 'badge-default' %>"><%= r.status %></span>
+                </td>
+                <td>
+                  <div class="flex gap-2 flex-wrap">
+                    <a href="/admin/volunteer/<%= r.id %>/signups" class="btn btn-secondary btn-sm" data-testid="button-signups-<%= r.id %>">Signups</a>
+                    <% if (r.status === 'open') { %>
+                      <form method="POST" action="/admin/volunteer/<%= r.id %>/close" style="display:inline;">
+                        <button type="submit" class="btn btn-secondary btn-sm" data-testid="button-close-<%= r.id %>">Close</button>
+                      </form>
+                    <% } %>
+                    <form method="POST" action="/admin/volunteer/<%= r.id %>/delete" onsubmit="return confirm('Delete this request?');">
+                      <button type="submit" class="btn btn-danger btn-sm" data-testid="button-delete-<%= r.id %>">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </main>
+</div>
+</body>
+</html>

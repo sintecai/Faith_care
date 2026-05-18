@@ -1,0 +1,84 @@
+Implement ONLY “Monthly Contribution Reminders” to families/members who have not paid, sent twice per month. Keep scope minimal.
+
+Hard rules:
+- Do NOT redesign UI.
+- Do NOT build a full scheduler/cron system.
+- Touch ONLY:
+  (1) a new admin page for dues reminders,
+  (2) SQL queries for unpaid/overdue,
+  (3) Twilio SMS send function (reuse existing SMS sender used for attendance follow-ups),
+  (4) outbound_messages logging.
+- Do NOT change existing dues logic except reading it.
+
+Goal:
+Admin can click a button to send polite reminder SMS to unpaid families/members. Admin will run it manually twice a month.
+
+Assumptions:
+- families has: family_id, church_id, dues_amount, dues_frequency, next_due_date, address fields
+- dues_payments exists OR next_due_date indicates due status
+- family_members table exists for mapping members in family
+- members has phone + consent_sms
+- Twilio SMS sending already exists using TWILIO_FROM_NUMBER
+- outbound_messages table exists to log sent/failed messages
+
+1) Admin page + routes
+Add:
+- GET  /admin/dues/reminders
+  Shows:
+   - Families due in next 7 days (optional)
+   - Families overdue (next_due_date < today) OR latest dues_payments status pending/overdue
+   - Count summary: total due, total overdue, eligible SMS count
+   - Dropdown to pick message template (3–5 polite templates)
+   - Button: “Send reminders now”
+- POST /admin/dues/reminders/send
+  Sends reminders immediately and logs results.
+
+2) Determine who to message
+For each overdue (or due) family:
+- Prefer sending to primary family contact:
+  families.primary_member_id -> members.phone
+- If primary_member_id is null, send to the first family member with consent_sms=true and phone not null.
+- If no member phone is available, skip and show in report as “Skipped - no phone”.
+
+3) Message templates (polite)
+Provide 3–5 templates with placeholders:
+Example templates:
+A) "Hi {{name}}, a gentle reminder that the monthly contribution for {{family}} is due. If you’ve already paid, please ignore. Thank you."
+B) "Hello {{name}}, just a friendly reminder about this month’s contribution for {{family}}. Let us know if you need any support."
+C) "Hi {{name}}, quick reminder: {{family}}’s monthly contribution is pending. Thank you for your continued support."
+D) "Hello {{name}}, we’re sending a gentle reminder about the monthly contribution. If payment is done, please ignore this message."
+
+Replace:
+{{name}} = first_name
+{{family}} = family_name
+
+4) Twice per month rule (duplicate prevention)
+Prevent sending more than 2 reminders per family per calendar month:
+- Use outbound_messages.template_key like:
+  dues_reminder:YYYY-MM:<family_id>
+- Store a sequence number in template_key or metadata:
+  dues_reminder:2026-01:<family_id>:1 or :2
+- Before sending, count how many outbound_messages exist for this family in the same month for dues_reminder.
+- If already 2 or more, skip.
+
+5) Logging and status updates
+For each send attempt:
+- Insert outbound_messages row with channel='sms', status='queued', to_address=phone, body=final body, template_key set.
+- Send SMS via Twilio messages API.
+- Update outbound_messages status to 'sent' or 'failed' with error text.
+
+6) Results UI
+After sending:
+- Show summary: Sent X, Failed Y, Skipped Z
+- Show a table of skipped families and reason.
+
+Acceptance checks:
+- Admin can open /admin/dues/reminders
+- Clicking “Send reminders now” sends SMS to eligible family contacts
+- System prevents more than 2 reminders per family per month
+- outbound_messages records are created with sent/failed status
+
+After completion, output:
+- URL to test
+- Required env vars (TWILIO_FROM_NUMBER)
+- Files changed

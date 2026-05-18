@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meetings - HFNI Connect Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="admin-layout">
+  <%- include('./partials/sidebar', { currentPage: 'events' }) %>
+  
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1 class="text-xl font-semibold">Meetings</h1>
+      <div class="text-sm text-secondary"><%= typeof staffName !== 'undefined' ? staffName : 'Admin' %></div>
+    </header>
+    
+    <div class="admin-content">
+      <div class="flex justify-between items-center gap-4 mb-6">
+        <h2 class="text-lg">All Meetings</h2>
+        <a href="/admin/events/new" class="btn btn-primary" data-testid="button-new-event">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          New Meeting
+        </a>
+      </div>
+      
+      <% if (typeof message !== 'undefined' && message) { %>
+        <div class="alert alert-success"><%= message %></div>
+      <% } %>
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+      
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Meeting</th>
+              <th>Date & Time</th>
+              <th>Location</th>
+              <th>Check-In Status</th>
+              <th>Attendance</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (typeof events === 'undefined' || events.length === 0) { %>
+              <tr><td colspan="6" class="text-center text-secondary py-8">No meetings scheduled</td></tr>
+            <% } else { %>
+              <% events.forEach(function(e) { %>
+              <tr data-testid="row-event-<%= e.id %>">
+                <td class="font-medium"><%= e.title %></td>
+                <td><%= new Date(e.eventDate).toLocaleDateString('en-GB', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) %></td>
+                <td><%= e.location || '-' %></td>
+                <td>
+                  <% if (e.checkInStatus === 'active') { %>
+                    <span class="badge badge-success">Check-In Active</span>
+                  <% } else if (e.checkInStatus === 'ended') { %>
+                    <span class="badge badge-secondary">Ended</span>
+                  <% } else { %>
+                    <span class="badge badge-secondary">Pending</span>
+                  <% } %>
+                </td>
+                <td><%= e.attendanceCount || 0 %></td>
+                <td class="flex gap-2 flex-wrap">
+                  <a href="/admin/events/<%= e.id %>/attendance" class="btn btn-ghost btn-sm" data-testid="button-attendance-<%= e.id %>">Attendance</a>
+                  <% if (e.checkInStatus === 'active') { %>
+                    <a href="/admin/events/<%= e.id %>/checkin" class="btn btn-primary btn-sm" data-testid="button-checkin-<%= e.id %>">View Code</a>
+                    <form method="POST" action="/admin/events/<%= e.id %>/end-checkin" style="display:inline;">
+                      <button type="submit" class="btn btn-danger btn-sm" data-testid="button-end-<%= e.id %>">End</button>
+                    </form>
+                  <% } else if (e.checkInStatus !== 'ended') { %>
+                    <form method="POST" action="/admin/events/<%= e.id %>/start-checkin" style="display:inline;">
+                      <button type="submit" class="btn btn-success btn-sm" data-testid="button-start-<%= e.id %>">Start Check-In</button>
+                    </form>
+                  <% } %>
+                </td>
+              </tr>
+              <% }); %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

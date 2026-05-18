@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Members - HFNI Connect Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="admin-layout">
+  <%- include('./partials/sidebar', { currentPage: 'members' }) %>
+  
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1 class="text-xl font-semibold">Members</h1>
+      <div class="text-sm text-secondary"><%= typeof staffName !== 'undefined' ? staffName : 'Admin' %></div>
+    </header>
+    
+    <div class="admin-content">
+      <div class="flex justify-between items-center gap-4 mb-6">
+        <form method="GET" action="/admin/members" class="search-bar flex-1" style="max-width: 24rem; margin: 0;">
+          <input type="text" name="q" class="form-control" placeholder="Search members..." value="<%= typeof query !== 'undefined' ? query : '' %>" data-testid="input-search-members">
+          <button type="submit" class="btn btn-secondary" data-testid="button-search">Search</button>
+        </form>
+        <a href="/admin/members/new" class="btn btn-primary" data-testid="button-new-member">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Add Member
+        </a>
+      </div>
+      
+      <% if (typeof message !== 'undefined' && message) { %>
+        <div class="alert alert-success"><%= message %></div>
+      <% } %>
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+      
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Address</th>
+              <th>Unit</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (typeof members === 'undefined' || members.length === 0) { %>
+              <tr><td colspan="6" class="text-center text-secondary py-8">No members found</td></tr>
+            <% } else { %>
+              <% members.forEach(function(m) { %>
+              <tr data-testid="row-member-<%= m.id %>">
+                <td class="font-medium"><%= m.firstName %> <%= m.lastName %></td>
+                <td><%= m.phone %></td>
+                <td class="text-sm" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<%= [m.addressLine1, m.city, m.postcode, m.country].filter(Boolean).join(', ') || m.address || '' %>">
+                  <%= [m.addressLine1, m.city, m.postcode].filter(Boolean).join(', ') || m.address || '-' %>
+                </td>
+                <td><%= m.unitName || '-' %></td>
+                <td>
+                  <span class="badge <%= m.isActive ? 'badge-success' : 'badge-secondary' %>">
+                    <%= m.isActive ? 'Active' : 'Inactive' %>
+                  </span>
+                </td>
+                <td>
+                  <a href="/admin/members/<%= m.id %>/edit" class="btn btn-ghost btn-sm" data-testid="button-edit-<%= m.id %>">Edit</a>
+                </td>
+              </tr>
+              <% }); %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

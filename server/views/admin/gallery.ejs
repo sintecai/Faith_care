@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gallery - HFNI Connect Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="admin-layout">
+  <%- include('./partials/sidebar', { currentPage: 'gallery' }) %>
+  
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1 class="text-xl font-semibold">Gallery</h1>
+      <div class="text-sm text-secondary"><%= typeof staffName !== 'undefined' ? staffName : 'Admin' %></div>
+    </header>
+    
+    <div class="admin-content">
+      <div class="flex justify-between items-center gap-4 mb-6">
+        <div></div>
+        <a href="/admin/gallery/new" class="btn btn-primary" data-testid="button-add-gallery">Add Item</a>
+      </div>
+      
+      <% if (typeof message !== 'undefined' && message) { %>
+        <div class="alert alert-success"><%= message %></div>
+      <% } %>
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+      
+      <% if (typeof items === 'undefined' || items.length === 0) { %>
+        <div class="empty-state">
+          <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+          <p>No gallery items yet</p>
+          <a href="/admin/gallery/new" class="btn btn-primary mt-4">Add First Item</a>
+        </div>
+      <% } else { %>
+        <div class="gallery-grid">
+          <% items.forEach(function(item) { %>
+          <div class="card" data-testid="gallery-item-<%= item.id %>">
+            <div class="card-body">
+              <img src="<%= item.url %>" alt="<%= item.title %>" style="width: 100%; height: 150px; object-fit: cover; border-radius: var(--radius); margin-bottom: 0.5rem;">
+              <h4 class="font-medium"><%= item.title %></h4>
+              <p class="text-sm text-secondary"><%= item.category %> | <%= item.mediaType %></p>
+              <form method="POST" action="/admin/gallery/<%= item.id %>/delete" class="mt-2" onsubmit="return confirm('Remove this item?');">
+                <button type="submit" class="btn btn-danger btn-sm" data-testid="button-delete-<%= item.id %>">Remove</button>
+              </form>
+            </div>
+          </div>
+          <% }); %>
+        </div>
+      <% } %>
+    </div>
+  </main>
+</div>
+<style>
+.gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+</style>
+</body>
+</html>

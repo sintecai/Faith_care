@@ -1,0 +1,105 @@
+Fix ONLY Dues Management + Monthly Contribution Reminders so the system can identify PAID vs UNPAID families and send reminders to UNPAID families (max 2 per month). Keep changes minimal.
+
+Hard rules:
+- Do NOT redesign UI.
+- Touch ONLY:
+  (1) dues DB layer (add one table if missing),
+  (2) /admin/dues page logic + view,
+  (3) /admin/dues/reminders page logic + view,
+  (4) outbound_messages (reuse existing).
+- Do NOT modify unrelated modules.
+
+========================
+A) Add a simple payments ledger (required)
+========================
+Create a table if missing: family_payments
+Columns:
+- payment_id uuid pk default gen_random_uuid()
+- church_id uuid not null
+- family_id uuid not null
+- period_year int not null
+- period_month int not null        -- 1..12
+- amount numeric not null default 0
+- paid_at timestamptz not null default now()
+- paid_by_staff_id uuid null
+Constraints:
+- unique(church_id, family_id, period_year, period_month)
+
+Purpose:
+This tells us if the family has paid for a given month.
+
+========================
+B) Define “current period” and unpaid
+========================
+- Current period = current date’s year/month (server local time).
+- A family is “PAID” if a family_payments row exists for (current year, current month).
+- Otherwise “UNPAID”.
+
+Do NOT use next_due_date to decide paid/unpaid. Keep next_due_date for schedule display only.
+
+========================
+C) Update /admin/dues page (show Paid vs Unpaid)
+========================
+On /admin/dues list:
+- Add a Status badge:
+  - Paid (green) if paid for current month
+  - Unpaid (red) if not paid for current month
+- Add filter tabs/buttons at top:
+  - All / Paid / Unpaid
+- Keep existing columns (Family, Due Amount, Next Due Date).
+
+Actions:
+- Replace/adjust “Mark Paid” so it marks paid for CURRENT month:
+  - When clicked:
+    - upsert into family_payments for current year/month
+    - amount = families.dues_amount (or allow override if easy; optional)
+- Add “Mark Unpaid” only if you previously stored a paid row:
+  - Deletes the family_payments row for current year/month (or marks void).
+  - Minimal: add a small “Undo Paid” button on Paid rows.
+
+========================
+D) Update /admin/dues/reminders (send to UNPAID)
+========================
+On Monthly Contribution Reminders page:
+- Overdue/Due-in-7-days is not the right logic now.
+Replace those counts with:
+1) Unpaid Families (this month)
+2) Eligible for SMS (unpaid + has contact phone + consent)
+3) Reminders already sent this month (count)
+
+List section:
+- Show table of UNPAID families:
+  family_name, dues_amount, primary contact name/phone, status=Unpaid, reminders_sent_this_month (0/1/2), action.
+
+Reminder sending:
+- Button: “Send reminder to unpaid families now”
+- It sends ONLY to unpaid families with reminders_sent_this_month < 2.
+- Use the selected template and replace {{name}} and {{family}}.
+
+Duplicate prevention (max 2/month):
+- Count outbound_messages for the family for the current month with template_key prefix:
+  dues_reminder:<YYYY-MM>:<family_id>
+- Only send if count < 2.
+- Store template_key like:
+  dues_reminder:2026-02:<family_id>
+
+========================
+E) Contact selection
+========================
+To send to a family:
+- Prefer families.primary_member_id if exists and member has phone + consent_sms
+- Else pick the first active family member with phone + consent_sms
+- Else skip and show reason "No eligible phone/consent"
+
+========================
+Acceptance checks:
+========================
+1) On /admin/dues, at least one family shows Unpaid for the current month until Mark Paid is clicked.
+2) Clicking Mark Paid changes status to Paid and creates a family_payments row.
+3) /admin/dues/reminders shows Unpaid families and can send reminders to them.
+4) Same family cannot receive more than 2 reminders in the same month (even if button clicked repeatedly).
+
+After completion, output:
+- SQL migration added (family_payments)
+- URLs to test
+- Files changed

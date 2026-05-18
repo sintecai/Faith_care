@@ -1,0 +1,61 @@
+Implement immediate SMS delivery to absentees (not just queue). Keep all existing queue logic. Do NOT redesign UI. Minimal changes only.
+
+Hard rules:
+- Touch ONLY:
+  (1) attendance report admin page + handler,
+  (2) meeting close handler (optional),
+  (3) outbound_messages sending function (Twilio SMS).
+- Do NOT refactor other modules.
+
+Goal:
+Absentees should receive the SMS immediately when admin clicks “Send now” OR when admin closes a meeting and chooses “Send follow-up now”.
+
+Assumptions:
+- Twilio is configured and working using Verify/Auth Token already.
+- outbound_messages table exists with status queued/sent/failed and phone/body fields.
+- If you already have a Twilio service file, reuse it (do not create duplicates).
+
+Tasks:
+
+1) Add “Send now” action on Attendance Report page
+- Add a button: “Send follow-up now”
+- POST /admin/attendance-report/send-absent-messages
+- Inputs: event_id + selected template_id (or template text)
+- Behavior:
+  a) Compute absentees list (same logic you used for queue)
+  b) For each absentee eligible (active, consent_sms true if exists, phone not null):
+     - Create outbound_messages row with status='queued'
+     - Immediately send SMS via Twilio Messages API (NOT Verify) using a configured sender number
+     - On success: update outbound_messages.status='sent', sent_at=now()
+     - On failure: update status='failed', store error_message
+  c) Show a result summary on the page:
+     Sent: X, Failed: Y, Skipped: Z
+
+2) Add meeting close option (optional but requested)
+- When admin closes a meeting/event, add a checkbox:
+  “Send absentee follow-up now”
+- If checked, call the same send function as above.
+
+3) Twilio sending requirements
+- Use Twilio SMS sending API:
+  client.messages.create({ to, from, body })
+- Read FROM number from env:
+  TWILIO_FROM_NUMBER
+- If missing, show clear admin error: “Set TWILIO_FROM_NUMBER in Secrets”.
+- Do not send to unverified numbers if Twilio is trial; show meaningful error.
+
+4) Duplicate protection
+- Prevent sending duplicates for same event+member+template:
+  - Check outbound_messages before sending.
+  - Use a template_key like: absent_followup:<event_id>:<template_id>
+  - Skip if already sent.
+
+Acceptance checks:
+- Clicking “Send follow-up now” sends SMS immediately to at least one absentee number.
+- outbound_messages shows sent/failed statuses correctly.
+- No duplicate sends if button clicked twice.
+
+After completion, output:
+- Which new env var is required (TWILIO_FROM_NUMBER)
+- The admin URLs to test
+- Files changed

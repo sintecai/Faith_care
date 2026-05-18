@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= isEdit ? 'Edit' : 'Add' %> Family - HFNI Connect Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="admin-layout">
+  <%- include('./partials/sidebar', { currentPage: 'families' }) %>
+  
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1 class="text-xl font-semibold"><%= isEdit ? 'Edit' : 'Add' %> Family</h1>
+      <div class="text-sm text-secondary"><%= typeof staffName !== 'undefined' ? staffName : 'Admin' %></div>
+    </header>
+    
+    <div class="admin-content">
+      <div class="card" style="max-width: 48rem;">
+        <div class="card-header">
+          <h3>Family Details</h3>
+        </div>
+        <div class="card-body">
+          <% if (typeof error !== 'undefined' && error) { %>
+            <div class="alert alert-error"><%= error %></div>
+          <% } %>
+          
+          <form method="POST" action="/admin/families<%= isEdit ? '/' + family.id + '/edit' : '/new' %>">
+            <div class="form-row">
+              <div class="form-group flex-2">
+                <label class="form-label" for="name">Family Name *</label>
+                <input 
+                  type="text" 
+                  id="name" 
+                  name="name" 
+                  class="form-control" 
+                  placeholder="Enter family name"
+                  value="<%= (typeof family !== 'undefined' && family) ? family.name : '' %>"
+                  required
+                  data-testid="input-name"
+                >
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label" for="unitId">Prayer Cell</label>
+                <select id="unitId" name="unitId" class="form-control" data-testid="select-prayer-cell">
+                  <option value="">No Prayer Cell</option>
+                  <% if (typeof units !== 'undefined') { %>
+                    <% units.forEach(function(u) { %>
+                      <option value="<%= u.id %>" <%= (typeof family !== 'undefined' && family && family.unitId === u.id) ? 'selected' : '' %>><%= u.name %></option>
+                    <% }); %>
+                  <% } %>
+                </select>
+              </div>
+            </div>
+            
+            <hr class="my-4">
+            <h4 class="text-md font-medium mb-3">Address</h4>
+            
+            <div class="form-group">
+              <label class="form-label" for="addressLine1">Address Line 1 *</label>
+              <input 
+                type="text" 
+                id="addressLine1" 
+                name="addressLine1" 
+                class="form-control" 
+                placeholder="House number and street"
+                value="<%= (typeof family !== 'undefined' && family && family.addressLine1) ? family.addressLine1 : '' %>"
+                data-testid="input-address-line1"
+              >
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label" for="addressLine2">Address Line 2</label>
+              <input 
+                type="text" 
+                id="addressLine2" 
+                name="addressLine2" 
+                class="form-control" 
+                placeholder="Apartment, suite, etc. (optional)"
+                value="<%= (typeof family !== 'undefined' && family && family.addressLine2) ? family.addressLine2 : '' %>"
+                data-testid="input-address-line2"
+              >
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="city">City *</label>
+                <input 
+                  type="text" 
+                  id="city" 
+                  name="city" 
+                  class="form-control" 
+                  value="<%= (typeof family !== 'undefined' && family && family.city) ? family.city : '' %>"
+                  data-testid="input-city"
+                >
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label" for="county">County</label>
+                <input 
+                  type="text" 
+                  id="county" 
+                  name="county" 
+                  class="form-control" 
+                  value="<%= (typeof family !== 'undefined' && family && family.county) ? family.county : '' %>"
+                  data-testid="input-county"
+                >
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="postcode">Postcode *</label>
+                <input 
+                  type="text" 
+                  id="postcode" 
+                  name="postcode" 
+                  class="form-control" 
+                  value="<%= (typeof family !== 'undefined' && family && family.postcode) ? family.postcode : '' %>"
+                  data-testid="input-postcode"
+                >
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label" for="country">Country *</label>
+                <input 
+                  type="text" 
+                  id="country" 
+                  name="country" 
+                  class="form-control" 
+                  value="<%= (typeof family !== 'undefined' && family && family.country) ? family.country : 'UK' %>"
+                  data-testid="input-country"
+                >
+              </div>
+            </div>
+            
+            <hr class="my-4">
+            <h4 class="text-md font-medium mb-3">Dues Information</h4>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="dueAmount">Due Amount</label>
+                <input 
+                  type="number" 
+                  id="dueAmount" 
+                  name="dueAmount" 
+                  class="form-control" 
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0"
+                  value="<%= (typeof family !== 'undefined' && family && family.dueAmount) ? family.dueAmount : '' %>"
+                  data-testid="input-amount"
+                >
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label" for="dueFrequency">Due Frequency</label>
+                <select id="dueFrequency" name="dueFrequency" class="form-control" data-testid="select-frequency">
+                  <option value="monthly" <%= (typeof family !== 'undefined' && family && family.dueFrequency === 'monthly') ? 'selected' : '' %>>Monthly</option>
+                  <option value="quarterly" <%= (typeof family !== 'undefined' && family && family.dueFrequency === 'quarterly') ? 'selected' : '' %>>Quarterly</option>
+                  <option value="annual" <%= (typeof family !== 'undefined' && family && family.dueFrequency === 'annual') ? 'selected' : '' %>>Annually</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label" for="nextDueDate">Next Due Date</label>
+                <input 
+                  type="date" 
+                  id="nextDueDate" 
+                  name="nextDueDate" 
+                  class="form-control" 
+                  value="<%= (typeof family !== 'undefined' && family && family.nextDueDate) ? family.nextDueDate : '' %>"
+                  data-testid="input-due-date"
+                >
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label" for="dueNotes">Dues Notes</label>
+              <textarea 
+                id="dueNotes" 
+                name="dueNotes" 
+                class="form-control" 
+                rows="2"
+                placeholder="Any notes about dues..."
+                data-testid="input-due-notes"
+              ><%= (typeof family !== 'undefined' && family && family.dueNotes) ? family.dueNotes : '' %></textarea>
+            </div>
+            
+            <% if (isEdit && typeof familyMembers !== 'undefined' && familyMembers.length > 0) { %>
+            <div class="form-group">
+              <label class="form-label" for="primaryMemberId">Primary Contact</label>
+              <select id="primaryMemberId" name="primaryMemberId" class="form-control" data-testid="select-primary-member">
+                <option value="">No primary contact</option>
+                <% familyMembers.forEach(function(fm) { %>
+                  <option value="<%= fm.memberId %>" <%= (typeof family !== 'undefined' && family && family.primaryMemberId === fm.memberId) ? 'selected' : '' %>><%= fm.memberName %></option>
+                <% }); %>
+              </select>
+            </div>
+            <% } %>
+            
+            <hr class="my-4">
+            <h4 class="text-md font-medium mb-3">Family Contact (for SMS Reminders)</h4>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="contactPhone">Contact Phone</label>
+                <input 
+                  type="tel" 
+                  id="contactPhone" 
+                  name="contactPhone" 
+                  class="form-control" 
+                  placeholder="+1234567890 (E.164 format)"
+                  value="<%= (typeof family !== 'undefined' && family && family.contactPhone) ? family.contactPhone : '' %>"
+                  data-testid="input-contact-phone"
+                >
+                <small class="text-secondary">Phone for dues reminders. If blank, will use primary member's phone.</small>
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label" for="contactName">Contact Name</label>
+                <input 
+                  type="text" 
+                  id="contactName" 
+                  name="contactName" 
+                  class="form-control" 
+                  placeholder="Name for personalized messages"
+                  value="<%= (typeof family !== 'undefined' && family && family.contactName) ? family.contactName : '' %>"
+                  data-testid="input-contact-name"
+                >
+              </div>
+            </div>
+            
+            <div class="flex gap-3 mt-6">
+              <a href="/admin/families" class="btn btn-secondary" data-testid="button-cancel">Cancel</a>
+              <button type="submit" class="btn btn-primary flex-1" data-testid="button-submit">
+                <%= isEdit ? 'Update' : 'Create' %> Family
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      
+      <% if (isEdit) { %>
+      <div class="card mt-6" style="max-width: 48rem;">
+        <div class="card-header">
+          <h3>Family Members</h3>
+        </div>
+        <div class="card-body">
+          <% if (typeof familyMembers !== 'undefined' && familyMembers.length > 0) { %>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Member</th>
+                  <th>Phone</th>
+                  <th>Role</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% familyMembers.forEach(function(fm) { %>
+                <tr data-testid="row-family-member-<%= fm.memberId %>">
+                  <td>
+                    <%= fm.memberName %>
+                    <% if (typeof family !== 'undefined' && family.primaryMemberId === fm.memberId) { %>
+                      <span class="badge badge-primary" style="margin-left: 0.5rem;">Primary</span>
+                    <% } %>
+                  </td>
+                  <td><%= fm.memberPhone || '-' %></td>
+                  <td>
+                    <form method="POST" action="/admin/families/<%= family.id %>/members/<%= fm.memberId %>/role" style="display:inline;">
+                      <select name="role" class="form-control form-control-sm" onchange="this.form.submit()" data-testid="select-role-<%= fm.memberId %>">
+                        <option value="member" <%= fm.role === 'member' ? 'selected' : '' %>>Member</option>
+                        <option value="head" <%= fm.role === 'head' ? 'selected' : '' %>>Head</option>
+                        <option value="spouse" <%= fm.role === 'spouse' ? 'selected' : '' %>>Spouse</option>
+                        <option value="child" <%= fm.role === 'child' ? 'selected' : '' %>>Child</option>
+                        <option value="other" <%= fm.role === 'other' ? 'selected' : '' %>>Other</option>
+                      </select>
+                    </form>
+                  </td>
+                  <td>
+                    <button 
+                      type="button" 
+                      class="btn btn-danger btn-sm remove-member-btn" 
+                      data-member-id="<%= fm.memberId %>"
+                      data-member-name="<%= fm.memberName %>"
+                      data-testid="button-remove-<%= fm.memberId %>"
+                    >Remove</button>
+                  </td>
+                </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          <% } else { %>
+            <p class="text-secondary">No members assigned to this family yet.</p>
+          <% } %>
+          
+          <hr class="my-4">
+          <h4 class="text-md font-medium mb-3">Add Member to Family</h4>
+          <div class="flex gap-3 flex-wrap items-end" id="add-member-form">
+            <div class="form-group flex-1" style="min-width: 200px; margin-bottom: 0; position: relative;">
+              <label class="form-label" for="memberSearch">Search Member</label>
+              <input 
+                type="text" 
+                id="memberSearch" 
+                class="form-control" 
+                placeholder="Type name or phone to search..."
+                autocomplete="off"
+                data-testid="input-member-search"
+              >
+              <input type="hidden" id="selectedMemberId" value="">
+              <div id="searchResults" class="typeahead-dropdown" style="display: none;"></div>
+            </div>
+            <div class="form-group" style="min-width: 120px; margin-bottom: 0;">
+              <label class="form-label" for="addRole">Role</label>
+              <select id="addRole" class="form-control" data-testid="select-role">
+                <option value="member">Member</option>
+                <option value="head">Head</option>
+                <option value="spouse">Spouse</option>
+                <option value="child">Child</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <button type="button" id="addMemberBtn" class="btn btn-primary" data-testid="button-add-member" disabled>Add Member</button>
+          </div>
+          <div id="add-member-status" class="mt-2" style="display: none;"></div>
+        </div>
+      </div>
+      <% } %>
+    </div>
+  </main>
+</div>
+
+<style>
+.typeahead-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+.typeahead-item {
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-color);
+}
+.typeahead-item:last-child {
+  border-bottom: none;
+}
+.typeahead-item:hover, .typeahead-item.active {
+  background: var(--bg-secondary);
+}
+.typeahead-item .member-name {
+  font-weight: 500;
+}
+.typeahead-item .member-phone {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+.typeahead-no-results {
+  padding: 0.5rem 0.75rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+.selected-member-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  background: var(--bg-primary-subtle);
+  border: 1px solid var(--primary);
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+}
+.selected-member-badge .clear-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0;
+}
+.selected-member-badge .clear-btn:hover {
+  color: var(--danger);
+}
+</style>
+
+<% if (isEdit) { %>
+<script>
+(function() {
+  const familyId = '<%= family.id %>';
+  const searchInput = document.getElementById('memberSearch');
+  const searchResults = document.getElementById('searchResults');
+  const selectedMemberIdInput = document.getElementById('selectedMemberId');
+  const addMemberBtn = document.getElementById('addMemberBtn');
+  const roleSelect = document.getElementById('addRole');
+  const statusDiv = document.getElementById('add-member-status');
+  
+  let debounceTimer;
+  let selectedMember = null;
+  
+  // Typeahead search
+  searchInput.addEventListener('input', function() {
+    const query = this.value.trim();
+    clearTimeout(debounceTimer);
+    
+    if (query.length < 2) {
+      searchResults.style.display = 'none';
+      return;
+    }
+    
+    debounceTimer = setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/admin/families/${familyId}/members/search?q=${encodeURIComponent(query)}`);
+        const data = await response.json();
+        
+        if (data.success && data.members.length > 0) {
+          searchResults.innerHTML = data.members.map(m => `
+            <div class="typeahead-item" data-id="${m.id}" data-name="${m.name}" data-phone="${m.phone || ''}">
+              <div class="member-name">${m.name}</div>
+              <div class="member-phone">${m.phone || 'No phone'}</div>
+            </div>
+          `).join('');
+          searchResults.style.display = 'block';
+        } else if (data.success && data.members.length === 0) {
+          searchResults.innerHTML = '<div class="typeahead-no-results">No members found</div>';
+          searchResults.style.display = 'block';
+        } else {
+          searchResults.style.display = 'none';
+        }
+      } catch (error) {
+        console.error('Search error:', error);
+        searchResults.style.display = 'none';
+      }
+    }, 300);
+  });
+  
+  // Handle typeahead selection
+  searchResults.addEventListener('click', function(e) {
+    const item = e.target.closest('.typeahead-item');
+    if (item) {
+      selectedMember = {
+        id: item.dataset.id,
+        name: item.dataset.name,
+        phone: item.dataset.phone
+      };
+      selectedMemberIdInput.value = selectedMember.id;
+      searchInput.value = selectedMember.name + (selectedMember.phone ? ' (' + selectedMember.phone + ')' : '');
+      searchResults.style.display = 'none';
+      addMemberBtn.disabled = false;
+    }
+  });
+  
+  // Close dropdown on click outside
+  document.addEventListener('click', function(e) {
+    if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+      searchResults.style.display = 'none';
+    }
+  });
+  
+  // Reset selection when input is manually changed
+  searchInput.addEventListener('keydown', function() {
+    if (selectedMember && this.value !== selectedMember.name + (selectedMember.phone ? ' (' + selectedMember.phone + ')' : '')) {
+      selectedMember = null;
+      selectedMemberIdInput.value = '';
+      addMemberBtn.disabled = true;
+    }
+  });
+  
+  // Add member button handler
+  addMemberBtn.addEventListener('click', async function() {
+    const memberId = selectedMemberIdInput.value;
+    const role = roleSelect.value;
+    
+    if (!memberId) {
+      showStatus('Please select a member from the search results.', 'error');
+      return;
+    }
+    
+    this.disabled = true;
+    this.textContent = 'Adding...';
+    
+    try {
+      const response = await fetch(`/api/admin/families/${familyId}/members`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberId, role })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        showStatus('Member added successfully! Refreshing...', 'success');
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+        showStatus(data.error || 'Failed to add member', 'error');
+        this.disabled = false;
+        this.textContent = 'Add Member';
+      }
+    } catch (error) {
+      showStatus('An error occurred. Please try again.', 'error');
+      this.disabled = false;
+      this.textContent = 'Add Member';
+    }
+  });
+  
+  // Remove member handlers
+  document.querySelectorAll('.remove-member-btn').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const memberId = this.dataset.memberId;
+      const memberName = this.dataset.memberName;
+      
+      if (!confirm(`Are you sure you want to remove ${memberName} from this family?`)) {
+        return;
+      }
+      
+      this.disabled = true;
+      this.textContent = 'Removing...';
+      
+      try {
+        const response = await fetch(`/api/admin/families/${familyId}/members/${memberId}`, {
+          method: 'DELETE'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          this.closest('tr').remove();
+          // Show message if no members left
+          const tbody = document.querySelector('.data-table tbody');
+          if (tbody && tbody.children.length === 0) {
+            const tableContainer = document.querySelector('.data-table').parentElement;
+            tableContainer.innerHTML = '<p class="text-secondary">No members assigned to this family yet.</p>';
+          }
+        } else {
+          alert(data.error || 'Failed to remove member');
+          this.disabled = false;
+          this.textContent = 'Remove';
+        }
+      } catch (error) {
+        alert('An error occurred. Please try again.');
+        this.disabled = false;
+        this.textContent = 'Remove';
+      }
+    });
+  });
+  
+  function showStatus(message, type) {
+    statusDiv.textContent = message;
+    statusDiv.className = 'mt-2 ' + (type === 'error' ? 'text-danger' : 'text-success');
+    statusDiv.style.display = 'block';
+    if (type === 'success') {
+      setTimeout(() => { statusDiv.style.display = 'none'; }, 3000);
+    }
+  }
+})();
+</script>
+<% } %>
+</body>
+</html>

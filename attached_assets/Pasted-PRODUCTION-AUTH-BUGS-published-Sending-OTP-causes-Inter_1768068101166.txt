@@ -1,0 +1,87 @@
+PRODUCTION AUTH BUGS (published):
+- Sending OTP causes Internal Server Error (500)
+- /debug/session remains {admin:false, member:false, churchId:null} after login
+Fix ONLY auth/OTP flow. Do not touch other features.
+
+Hard rules:
+- No DB migrations.
+- No UI redesign.
+- Touch ONLY:
+  (1) OTP send handler,
+  (2) OTP verify handler,
+  (3) session-setting + redirect logic,
+  (4) add one debug endpoint /debug/twilio (config check only),
+  (5) global error handler only if needed to prevent 500 with no message.
+
+========================
+A) FIX OTP SEND 500 (Twilio Verify)
+========================
+1) Locate the endpoint used to send OTP (e.g., POST /auth/send-otp or /login/send-code).
+2) Wrap Twilio call in try/catch.
+3) On error, DO NOT throw. Return a clean JSON error:
+   status 400/500 with { ok:false, error:"otp_send_failed", message:"<safe message>" }
+4) Log the real error server-side:
+   - err.message + err.code + err.moreInfo if present
+5) Validate phone format before calling Twilio:
+   - must start with "+"
+   - if not, return 400 with message "Phone must include +country code"
+
+6) Ensure Twilio Verify client is initialized correctly:
+   - Use ACCOUNT_SID + AUTH_TOKEN (trial/paid) OR API Key mode, but be consistent.
+   - If any required env var missing in production, return 500 with a clear safe message.
+
+Add /debug/twilio endpoint:
+GET /debug/twilio
+Return JSON booleans ONLY:
+{
+  "accountSid": true/false,
+  "authToken": true/false,
+  "verifyServiceSid": true/false,
+  "mode": "auth_token"|"api_key"|"..."
+}
+Do NOT return actual values.
+
+Acceptance:
+- Published /debug/twilio shows all required values = true
+- OTP send endpoint no longer 500s; it returns ok:false with message if Twilio fails
+
+========================
+B) FIX OTP VERIFY + SESSION PERSISTENCE
+========================
+1) Locate OTP verify endpoint (e.g., POST /login/verify).
+2) After successful Twilio verification AND member lookup:
+   - set req.session.memberId = member.id (or member_id)
+   - set req.session.churchId = member.church_id
+   - set req.session.role = "member"
+3) IMPORTANT: save session before redirect:
+   req.session.save(() => res.redirect(returnUrl || "/home"))
+4) Ensure auth middleware checks the SAME keys:
+   - If middleware checks req.session.user or req.session.member, align it.
+   - Either update middleware to check memberId/adminId OR set both keys.
+
+Acceptance:
+- After member login, /debug/session shows member:true and churchId not null
+
+========================
+C) ADMIN LOGIN SESSION (IF APPLICABLE)
+========================
+If admin login exists and also fails:
+- On admin login success:
+  req.session.adminId = admin.id
+  req.session.churchId = admin.church_id (or default)
+  req.session.role = "admin"
+  req.session.save(() => res.redirect("/admin"))
+
+Acceptance:
+- After admin login, /debug/session shows admin:true and churchId not null
+
+========================
+D) DO NOT BREAK WORKING PAGES
+========================
+- Keep /health, /debug/cookies, /debug/session working
+- Do not change unrelated routes
+
+Deliverables after fix:
+- Which endpoints handle OTP send and verify (routes)
+- Files changed
+- What /debug/twilio returns (example)

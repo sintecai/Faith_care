@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login - HFNI Connect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="login-hero">
+  <div class="login-card">
+    <div class="login-card-header">
+      <img src="/assets/logo/heavenly-feast.png" alt="Heavenly Feast Logo" class="login-logo">
+      <h1>Admin Login</h1>
+      <p>HFNI Connect Church Management</p>
+    </div>
+    <div class="login-card-body">
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+      
+      <form method="POST" action="/admin/login">
+        <div class="form-group">
+          <label class="form-label" for="email">Email</label>
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            class="form-control" 
+            placeholder="admin@church.com"
+            required
+            autofocus
+            data-testid="input-email"
+          >
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input 
+            type="password" 
+            id="password" 
+            name="password" 
+            class="form-control" 
+            placeholder="Enter password"
+            required
+            data-testid="input-password"
+          >
+        </div>
+        
+        <button type="submit" class="btn btn-primary btn-lg btn-block" data-testid="button-admin-login">
+          Sign In
+        </button>
+      </form>
+      
+      <div class="text-center mt-6 pt-4" style="border-top: 1px solid var(--border);">
+        <a href="/login" class="text-sm text-secondary" data-testid="link-member-login">Member Login</a>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

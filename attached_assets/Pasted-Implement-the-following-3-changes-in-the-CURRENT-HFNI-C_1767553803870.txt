@@ -1,0 +1,153 @@
+Implement the following 3 changes in the CURRENT HFNI Connect codebase. Do NOT undo existing work. Keep all existing routes/features working. This prompt is additive only.
+
+========================
+GLOBAL RULES (IMPORTANT)
+========================
+- Do NOT redesign the whole UI. Minimal UI changes only.
+- Do NOT refactor unrelated files.
+- Reuse existing Twilio SMS sending utilities already used for attendance/dues reminders.
+- All DB queries must remain scoped by church_id.
+- Use parameterized queries only.
+- Add clear server-side logging for failures (but do not expose secrets).
+- If Twilio is trial, show a friendly admin warning when messages can’t be delivered to unverified numbers.
+
+======================================================
+1) REMOVE “NOTIFICATIONS” FROM ADMIN CONTENT MENU
+======================================================
+Goal:
+- Under Admin sidebar “Content”, remove “Notifications” from the visible menu list.
+- Do NOT delete the underlying feature/pages/tables. Just hide it from menu to simplify admin UI.
+
+Requirements:
+- Remove the nav link entry for Notifications from the sidebar.
+- Ensure nothing breaks: any existing /admin/notifications route can remain accessible but not linked.
+- Member-side Notifications (if any) should remain unchanged.
+
+Acceptance:
+- Admin sidebar Content section shows Announcements (and other content items) but NOT Notifications.
+- App runs without errors.
+
+======================================================
+2) AUTO-SEND ANNOUNCEMENTS AS SMS TO ALL MEMBERS
+======================================================
+Goal:
+Whenever admin creates an Announcement and posts/publishes it, it should automatically send as an SMS to all eligible members.
+
+Implementation requirements:
+
+A) Define “posted/published”
+- If your announcement flow already has a “Post” button or a “status” field (draft/published), then trigger SMS sending ONLY when status becomes “published”.
+- If there is no status field, treat “Create Announcement” submission as “published” and trigger SMS after saving to DB.
+- Prevent accidental duplicates: do not re-send if admin edits an existing announcement.
+
+B) Member eligibility to receive SMS
+- Member must be active (is_active = true).
+- Member must have a valid phone number in E.164 format starting with “+”.
+- If a consent flag exists (consent_sms / opt_in_sms), only send when consent is true.
+- If no consent flag exists, send to all active members with a phone number (but keep code ready to respect consent later).
+
+C) SMS content format (short, readable)
+- SMS body should include:
+  - Church/app name prefix e.g. “HFNI Connect:”
+  - Announcement title (short)
+  - A short snippet of the body (limit total SMS length to ~300 chars)
+  - Optional: “Open the app for details.”
+Example:
+"HFNI Connect: {TITLE} - {BODY_SNIPPET} (Open the app for details)"
+
+D) Twilio sending
+- Use Twilio Messages API: client.messages.create({to, from, body})
+- Require env var in Replit Secrets:
+  - TWILIO_FROM_NUMBER (the Twilio SMS-capable number)
+- Reuse existing Twilio client module (do NOT create duplicates).
+- Send messages server-side only.
+
+E) Logging + delivery tracking
+- Log each SMS attempt to outbound_messages (existing table):
+  - channel='sms'
+  - template_key='announcement_broadcast:<announcement_id>'
+  - to_address=member phone
+  - status: queued -> sent/failed
+  - error_message if failed
+- Add a broadcast tracking table if needed (optional), but prefer minimal:
+  - a field on announcements like sms_broadcast_sent_at timestamptz
+  - or a separate table announcement_broadcasts(announcement_id, sent_at, total_sent, total_failed)
+- Duplicate protection:
+  - If sms_broadcast_sent_at is set, do not broadcast again for the same announcement_id.
+  - Or check outbound_messages for template_key prefix announcement_broadcast:<announcement_id>.
+
+F) Performance (200 members max)
+- Use sequential sending or small batches (e.g., 10 at a time) to avoid timeouts.
+- Provide admin feedback:
+  - After posting, show a summary: “SMS broadcast queued/sent to X members, failed Y”.
+  - If sending is queued asynchronously in-process, at least show “Broadcast started”.
+
+G) Admin control toggle (recommended)
+- Add a checkbox on the Announcement create form:
+  “Send as SMS to all members”
+  Default: ON
+- If unchecked, do not send SMS, only create the announcement.
+
+Acceptance:
+- Creating/publishing an announcement triggers SMS broadcast to eligible members.
+- No duplicate sends on edit.
+- Outbound_messages shows sent/failed records for the broadcast.
+- If TWILIO_FROM_NUMBER missing, show a clear admin error message on the announcement page.
+
+======================================================
+3) GALLERY: ALLOW SELECTING IMAGES FROM DEVICE
+======================================================
+Goal:
+In Admin -> Gallery -> Add item, allow uploading an image file from the device (not only URL).
+
+Requirements:
+
+A) UI
+- On “Add to Gallery” form:
+  - Add a file input:
+    <input type="file" accept="image/*">
+  - Keep existing URL option if present (do not remove).
+  - Add a simple toggle or show both:
+    - Image Upload (file)
+    - Image URL (optional)
+  - If both are provided, file upload takes priority.
+
+B) Upload handling
+- Implement server-side handling for multipart/form-data.
+- If the project already uses multer or similar, reuse it.
+- If not, add the minimum dependency needed (multer) and configure safely.
+- Store uploaded files locally in the project (for now) under:
+  /public/uploads/gallery/
+- Save the stored public URL into gallery_items.url (or equivalent), e.g.:
+  /uploads/gallery/<filename>
+- Generate unique filenames to avoid collisions.
+
+C) Validation
+- Allow only images (png/jpg/jpeg/webp).
+- Limit file size (e.g., 5MB).
+- If invalid, show friendly error.
+
+D) Display
+- Ensure uploaded images render in the Gallery list and detail pages for both admin and members.
+- Thumbnails can be the same URL if no thumb generation exists.
+
+E) Future-proof note (do not implement now)
+- Keep implementation simple now (local uploads). Later we can move storage to S3 or Supabase storage.
+
+Acceptance:
+- Admin can click “Choose file” and upload image from device.
+- Image is saved and appears in Gallery list.
+- Members can view it in Gallery.
+
+======================================================
+DELIVERABLES
+======================================================
+After implementing, provide:
+1) Files changed list
+2) Any new env var required (TWILIO_FROM_NUMBER)
+3) URLs to test:
+   - Create announcement -> verify SMS sent
+   - Gallery add -> upload from device
+4) Any new dependency added (only if necessary, e.g., multer)
+
+Do not modify anything outside these requirements.

@@ -1,0 +1,67 @@
+Fix ONLY the Ministry Groups pages (Elders & Ministers, TNT, Jesus School, Core Leaders) so they manage MEMBERS, not groups. Do not touch other modules.
+
+Hard rules:
+- Do NOT redesign the whole admin.
+- Do NOT add new ministry groups UI.
+- Do NOT break existing “All Groups” page.
+- Touch ONLY:
+  (1) the ministry group pages routes/templates,
+  (2) the group membership join logic (member_groups),
+  (3) seed/default group records if missing.
+
+Goal:
+- Each ministry group is FIXED (exactly one per church):
+  Elders & Ministers, TNT, Jesus School, Core Leaders
+- On these pages, remove “Add Group” / “Add First Group”.
+- Instead show “Manage Members” UI:
+  - Add Member to this group (dropdown/search)
+  - List current members in this group with Remove button
+  - Show member count at top
+
+Implementation steps:
+1) Ensure the 4 fixed groups exist in DB for the current church.
+   - On server startup OR first visit to /admin/groups pages, auto-create (upsert) these groups if missing.
+   - Each should have a stable key/slug:
+     elders, tnt, jesus_school, core_leaders
+   - Do not require manual “Add Group” at all for these.
+
+2) Membership join table:
+   - Use existing member_groups table.
+   - If it does not exist, create it (safe migration):
+     member_groups(id uuid pk default gen_random_uuid(),
+                   church_id uuid not null,
+                   group_id uuid not null,
+                   member_id uuid not null,
+                   created_at timestamptz default now(),
+                   unique(church_id, group_id, member_id))
+   - All queries must filter by church_id.
+
+3) Routes behavior:
+   - /admin/groups?name=elders (and the other names) should:
+     a) resolve the group record by slug/name
+     b) load members currently in this group
+     c) load members NOT in this group for the add dropdown
+
+4) UI changes on those pages:
+   - Replace empty-state “No active ministry groups found” with:
+     “No members added yet”
+   - Hide “Active/Archived/All” tabs if they are related to group records.
+   - Remove Add Group buttons entirely from these 4 pages.
+   - Provide:
+     - “Add member” dropdown + Add button
+     - Members table: Name, Phone, Prayer Cell, Action(Remove)
+
+5) “All Groups” summary:
+   - Ensure All Groups page shows the 4 groups and their member counts.
+   - Member count should update after add/remove.
+
+Acceptance tests:
+- Visiting Elders & Ministers page shows Manage Members UI (no Add Group button).
+- I can add a member -> appears in the list.
+- I can remove a member -> disappears.
+- All Groups shows updated count.
+
+After completion, output:
+- URLs to test for all 4 groups
+- Files changed
+- Any SQL migration added (only if member_groups missing)

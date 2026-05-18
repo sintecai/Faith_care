@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Set Your Password - HFNI Connect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="login-hero">
+  <div class="login-card">
+    <div class="login-card-header">
+      <img src="/assets/logo/heavenly-feast.png" alt="Heavenly Feast Logo" class="login-logo">
+      <h1>HFNI Connect</h1>
+      <% if (tokenValid) { %>
+        <p>Welcome, <%= memberName %>! Set your password below.</p>
+      <% } else { %>
+        <p>First-Time Login</p>
+      <% } %>
+    </div>
+    <div class="login-card-body">
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+      
+      <% if (tokenValid) { %>
+        <form id="set-password-form">
+          <input type="hidden" name="token" value="<%= token %>">
+          
+          <div class="form-group">
+            <label class="form-label" for="password">Password</label>
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              class="form-control" 
+              placeholder="Create a password"
+              required
+              minlength="6"
+              autofocus
+              data-testid="input-password"
+            >
+            <p class="form-hint">At least 6 characters</p>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="confirmPassword">Confirm Password</label>
+            <input 
+              type="password" 
+              id="confirmPassword" 
+              name="confirmPassword" 
+              class="form-control" 
+              placeholder="Confirm your password"
+              required
+              minlength="6"
+              data-testid="input-confirm-password"
+            >
+          </div>
+          
+          <div id="form-error" class="alert alert-error" style="display: none;"></div>
+          
+          <button type="submit" class="btn btn-primary btn-lg btn-block" data-testid="button-set-password">
+            Set Password & Sign In
+          </button>
+        </form>
+        
+        <script>
+          document.getElementById('set-password-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const errorDiv = document.getElementById('form-error');
+            const submitBtn = this.querySelector('button[type="submit"]');
+            
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const token = this.querySelector('input[name="token"]').value;
+            
+            if (password !== confirmPassword) {
+              errorDiv.textContent = 'Passwords do not match';
+              errorDiv.style.display = 'block';
+              return;
+            }
+            
+            if (password.length < 6) {
+              errorDiv.textContent = 'Password must be at least 6 characters';
+              errorDiv.style.display = 'block';
+              return;
+            }
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Setting password...';
+            errorDiv.style.display = 'none';
+            
+            try {
+              const res = await fetch('/auth/first-login/set-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token, password, confirmPassword })
+              });
+              
+              const data = await res.json();
+              
+              if (data.ok) {
+                window.location.href = data.redirect || '/home';
+              } else {
+                errorDiv.textContent = data.message || 'Failed to set password';
+                errorDiv.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Set Password & Sign In';
+              }
+            } catch (err) {
+              errorDiv.textContent = 'Network error. Please try again.';
+              errorDiv.style.display = 'block';
+              submitBtn.disabled = false;
+              submitBtn.textContent = 'Set Password & Sign In';
+            }
+          });
+        </script>
+      <% } else { %>
+        <p class="text-center text-secondary">Please contact your church administrator for a new login link.</p>
+        <a href="/login" class="btn btn-outline btn-block mt-4" data-testid="link-back-to-login">Back to Login</a>
+      <% } %>
+    </div>
+  </div>
+</div>
+</body>
+</html>

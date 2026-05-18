@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carpooling - HFNI Connect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid var(--border-color, #e5e7eb);
+      margin-bottom: 1.5rem;
+      gap: 0;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 0.875rem 1rem;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary, #6b7280);
+      font-weight: 500;
+      font-size: 0.9375rem;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .tab-btn:hover {
+      color: var(--text-primary, #1f2937);
+      background: var(--bg-hover, #f9fafb);
+    }
+    .tab-btn.active {
+      color: var(--primary-color, #2563eb);
+      border-bottom-color: var(--primary-color, #2563eb);
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    .ride-card {
+      border: 1px solid var(--border-color, #e5e7eb);
+      border-radius: 0.75rem;
+      padding: 1rem;
+      background: var(--card-bg, #fff);
+      margin-bottom: 0.75rem;
+    }
+    .ride-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .ride-driver-name {
+      font-weight: 600;
+      color: var(--text-primary, #1f2937);
+      font-size: 1rem;
+    }
+    .ride-meeting-name {
+      font-size: 0.8125rem;
+      color: var(--primary-color, #2563eb);
+      font-weight: 500;
+    }
+    .ride-details {
+      display: flex;
+      flex-direction: column;
+      gap: 0.375rem;
+      font-size: 0.875rem;
+      color: var(--text-secondary, #6b7280);
+    }
+    .ride-details-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .ride-details-row svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      opacity: 0.6;
+    }
+    .ride-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--border-color, #e5e7eb);
+    }
+    .meeting-filter {
+      margin-bottom: 1rem;
+    }
+    .section-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      color: var(--text-primary, #1f2937);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .section-title svg {
+      width: 18px;
+      height: 18px;
+      opacity: 0.7;
+    }
+    .seats-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.25rem 0.625rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .seats-badge.available {
+      background: #dcfce7;
+      color: #166534;
+    }
+    .form-section {
+      background: var(--card-bg, #fff);
+      border: 1px solid var(--border-color, #e5e7eb);
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .form-section-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .vehicle-type-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+    }
+    .vehicle-type-option {
+      padding: 0.625rem 0.5rem;
+      border: 1px solid var(--border-color, #e5e7eb);
+      border-radius: 0.5rem;
+      text-align: center;
+      cursor: pointer;
+      font-size: 0.8125rem;
+      transition: all 0.2s;
+    }
+    .vehicle-type-option:hover {
+      border-color: var(--primary-color, #2563eb);
+    }
+    .vehicle-type-option input {
+      display: none;
+    }
+    .vehicle-type-option.selected {
+      border-color: var(--primary-color, #2563eb);
+      background: rgba(37, 99, 235, 0.05);
+    }
+    .empty-rides {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: var(--text-secondary, #6b7280);
+    }
+    .empty-rides svg {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 0.75rem;
+      opacity: 0.4;
+    }
+    .my-rides-section {
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border-color, #e5e7eb);
+    }
+  </style>
+</head>
+<body>
+<div class="member-page hfni-themed">
+  <!-- Mobile Navigation -->
+  <%- include('../partials/member-mobile-nav') %>
+  
+  <div class="member-header">
+    <div class="member-header-inner">
+      <!-- Mobile hamburger button -->
+      <button id="mobile-menu-btn" class="mobile-menu-btn" data-testid="button-mobile-menu" aria-label="Open menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      
+      <a href="/home" class="member-logo" data-testid="link-home">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7L12 2z"/>
+          <path d="M12 7v8"/>
+        </svg>
+        <%= typeof churchName !== 'undefined' ? churchName : 'HFNI Connect' %>
+      </a>
+      <div class="flex items-center gap-3">
+        <span class="member-name"><%= typeof memberName !== 'undefined' ? memberName : '' %></span>
+        <a href="/logout" class="btn btn-primary btn-sm desktop-only" data-testid="button-logout">Logout</a>
+      </div>
+    </div>
+  </div>
+  
+  <div class="member-content">
+    <div class="member-dashboard">
+      <div class="flex items-center gap-3 mb-6">
+        <a href="/home" class="btn btn-ghost btn-sm" data-testid="button-back">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+          Back
+        </a>
+        <h1 class="text-xl font-semibold">Carpooling</h1>
+      </div>
+      
+      <% if (typeof message !== 'undefined' && message) { %>
+        <div class="alert alert-success mb-4" data-testid="alert-success"><%= message %></div>
+      <% } %>
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-error mb-4" data-testid="alert-error"><%= error %></div>
+      <% } %>
+      
+      <% if (typeof upcomingEvents === 'undefined' || upcomingEvents.length === 0) { %>
+      <div class="empty-rides">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        <p>No upcoming meetings scheduled.</p>
+        <p class="text-sm mt-1">Check back later to offer or request rides.</p>
+      </div>
+      <% } else { %>
+      
+      <!-- Meeting Filter -->
+      <div class="meeting-filter">
+        <label class="form-label" for="meeting-filter">Select Meeting</label>
+        <select id="meeting-filter" class="form-control" onchange="changeMeeting(this.value)" data-testid="select-meeting-filter">
+          <% upcomingEvents.forEach(function(event) { %>
+            <option value="<%= event.id %>" <%= event.id === selectedMeetingId ? 'selected' : '' %> data-location="<%= event.location || '' %>">
+              <%= event.title %> - <%= new Date(event.eventDate).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) %>
+            </option>
+          <% }); %>
+        </select>
+      </div>
+      
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="offer" data-testid="tab-offer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.8C1.4 11.3 1 12.1 1 13v3c0 .6.4 1 1 1h2"/>
+            <circle cx="7" cy="17" r="2"/>
+            <circle cx="17" cy="17" r="2"/>
+          </svg>
+          Offer a Ride
+        </button>
+        <button class="tab-btn" data-tab="request" data-testid="tab-request">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M8 12h8M12 8v8"/>
+          </svg>
+          Request a Ride
+        </button>
+      </div>
+      
+      <!-- Offer a Ride Tab -->
+      <div id="tab-offer" class="tab-content active">
+        <div class="form-section">
+          <div class="form-section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.8C1.4 11.3 1 12.1 1 13v3c0 .6.4 1 1 1h2"/>
+              <circle cx="7" cy="17" r="2"/>
+              <circle cx="17" cy="17" r="2"/>
+            </svg>
+            Offer a Ride
+          </div>
+          <form method="POST" action="/rides/offer" data-testid="form-offer-ride">
+            <input type="hidden" name="meetingId" id="offer-meeting-id" value="<%= selectedMeetingId %>">
+            
+            <div class="form-group mb-3">
+              <label class="form-label" for="offer-pickup">Pickup Location</label>
+              <input type="text" id="offer-pickup" name="pickupArea" class="form-control" placeholder="e.g., Near Tesco on High Street, London N1 2AB" required data-testid="input-offer-pickup">
+              <small class="form-text text-secondary">Enter a recognizable address or landmark</small>
+            </div>
+            
+            <div class="form-group mb-3">
+              <label class="form-label">Destination</label>
+              <input type="text" id="offer-destination" class="form-control" readonly disabled placeholder="Selected from meeting location">
+              <small class="form-text text-secondary">Auto-filled from meeting venue</small>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-3 mb-3">
+              <div class="form-group">
+                <label class="form-label" for="offer-seats">Available Seats</label>
+                <select id="offer-seats" name="seatsAvailable" class="form-control" data-testid="select-offer-seats">
+                  <option value="1">1 seat</option>
+                  <option value="2">2 seats</option>
+                  <option value="3">3 seats</option>
+                  <option value="4" selected>4 seats</option>
+                  <option value="5">5 seats</option>
+                  <option value="6">6 seats</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="offer-vehicle">Vehicle Type</label>
+                <select id="offer-vehicle" name="vehicleType" class="form-control" data-testid="select-vehicle-type">
+                  <option value="Saloon">Saloon</option>
+                  <option value="Hatchback">Hatchback</option>
+                  <option value="SUV">SUV</option>
+                  <option value="MPV">MPV</option>
+                  <option value="Estate">Estate</option>
+                  <option value="Van">Van</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-group mb-4">
+              <label class="form-label" for="offer-notes">Additional Notes (optional)</label>
+              <textarea id="offer-notes" name="notes" class="form-control" rows="2" placeholder="e.g., I can pick up from nearby areas, child seat available..." data-testid="input-offer-notes"></textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-success btn-block" data-testid="button-submit-offer">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              Offer This Ride
+            </button>
+          </form>
+        </div>
+        
+        <!-- People Looking for Rides (visible to drivers) -->
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          People Looking for Rides
+        </div>
+        <% if (typeof rideRequests !== 'undefined' && rideRequests.length > 0) { %>
+        <% rideRequests.forEach(function(req) { %>
+        <div class="ride-card" data-testid="card-request-<%= req.id %>">
+          <div class="ride-card-header">
+            <div>
+              <div class="ride-driver-name"><%= req.requesterName %></div>
+              <div class="ride-meeting-name"><%= req.meetingTitle || 'Meeting' %></div>
+            </div>
+            <span class="badge <%= req.status === 'accepted' ? 'badge-success' : (req.status === 'declined' ? 'badge-danger' : 'badge-warning') %>"><%= req.status %></span>
+          </div>
+          <div class="ride-details">
+            <div class="ride-details-row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+              <span>Needs pickup from: <%= req.pickupArea %></span>
+            </div>
+            <% if (req.notes) { %>
+            <div class="ride-details-row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+              <span><%= req.notes %></span>
+            </div>
+            <% } %>
+          </div>
+          <div class="ride-actions">
+            <a href="/rides/message/<%= req.requesterId %>" class="btn btn-primary btn-sm flex-1" data-testid="button-message-requester-<%= req.id %>">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+              Message
+            </a>
+          </div>
+        </div>
+        <% }); %>
+        <% } else { %>
+        <div class="empty-rides">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+          </svg>
+          <p>No one is looking for a ride to this meeting yet.</p>
+        </div>
+        <% } %>
+        
+        <!-- My Offers -->
+        <% if (typeof myOffers !== 'undefined' && myOffers.length > 0) { %>
+        <div class="my-rides-section">
+          <div class="section-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.8C1.4 11.3 1 12.1 1 13v3c0 .6.4 1 1 1h2"/>
+              <circle cx="7" cy="17" r="2"/>
+              <circle cx="17" cy="17" r="2"/>
+            </svg>
+            My Ride Offers
+          </div>
+          <% myOffers.forEach(function(offer) { %>
+          <div class="ride-card" data-testid="card-my-offer-<%= offer.id %>">
+            <div class="ride-card-header">
+              <div>
+                <span class="badge badge-primary mb-1">My Offer</span>
+                <div class="ride-meeting-name"><%= offer.meetingTitle || 'Meeting' %></div>
+              </div>
+              <span class="seats-badge available">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                </svg>
+                <%= offer.seatsAvailable %> seat<%= offer.seatsAvailable !== 1 ? 's' : '' %>
+              </span>
+            </div>
+            <div class="ride-details">
+              <div class="ride-details-row">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+                <span>Pickup: <%= offer.pickupArea %></span>
+              </div>
+              <% if (offer.notes) { %>
+              <div class="ride-details-row">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                <span><%= offer.notes %></span>
+              </div>
+              <% } %>
+            </div>
+            <div class="ride-actions">
+              <span class="badge <%= offer.status === 'open' ? 'badge-success' : 'badge-secondary' %>"><%= offer.status %></span>
+              <form method="POST" action="/rides/offer/<%= offer.id %>/cancel" style="margin-left: auto;">
+                <button type="submit" class="btn btn-ghost btn-sm text-danger" data-testid="button-cancel-offer-<%= offer.id %>">Cancel</button>
+              </form>
+            </div>
+          </div>
+          <% }); %>
+        </div>
+        <% } %>
+      </div>
+      
+      <!-- Request a Ride Tab -->
+      <div id="tab-request" class="tab-content">
+        <div class="form-section">
+          <div class="form-section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M8 12h8M12 8v8"/>
+            </svg>
+            Request a Ride
+          </div>
+          <form method="POST" action="/rides/request" data-testid="form-request-ride">
+            <input type="hidden" name="meetingId" id="request-meeting-id" value="<%= selectedMeetingId %>">
+            
+            <div class="form-group mb-3">
+              <label class="form-label" for="request-pickup">Your Pickup Location</label>
+              <input type="text" id="request-pickup" name="pickupArea" class="form-control" placeholder="e.g., 123 Main Street, London SW1A 1AA" required data-testid="input-request-pickup">
+              <small class="form-text text-secondary">Enter your address or a nearby landmark</small>
+            </div>
+            
+            <div class="form-group mb-3">
+              <label class="form-label" for="request-time">Preferred Pickup Time</label>
+              <input type="time" id="request-time" name="preferredTime" class="form-control" data-testid="input-request-time">
+              <small class="form-text text-secondary">When would you like to be picked up?</small>
+            </div>
+            
+            <div class="form-group mb-4">
+              <label class="form-label" for="request-notes">Additional Notes (optional)</label>
+              <textarea id="request-notes" name="notes" class="form-control" rows="2" placeholder="e.g., I have mobility needs, travelling with children..." data-testid="input-request-notes"></textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-block" data-testid="button-submit-request">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              Request a Ride
+            </button>
+          </form>
+        </div>
+        
+        <!-- Available Rides -->
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.8C1.4 11.3 1 12.1 1 13v3c0 .6.4 1 1 1h2"/>
+            <circle cx="7" cy="17" r="2"/>
+            <circle cx="17" cy="17" r="2"/>
+          </svg>
+          Available Rides
+        </div>
+        <% if (typeof availableOffers !== 'undefined' && availableOffers.length > 0) { %>
+        <% availableOffers.forEach(function(offer) { %>
+        <div class="ride-card" data-testid="card-offer-<%= offer.id %>">
+          <div class="ride-card-header">
+            <div>
+              <div class="ride-driver-name"><%= offer.memberName %></div>
+              <div class="ride-meeting-name"><%= offer.meetingTitle || 'Meeting' %></div>
+            </div>
+            <span class="seats-badge available">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+              </svg>
+              <%= offer.seatsAvailable %> seat<%= offer.seatsAvailable !== 1 ? 's' : '' %>
+            </span>
+          </div>
+          <div class="ride-details">
+            <div class="ride-details-row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+              <span>Pickup from: <%= offer.pickupArea %></span>
+            </div>
+            <% if (offer.notes) { %>
+            <div class="ride-details-row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+              <span><%= offer.notes %></span>
+            </div>
+            <% } %>
+          </div>
+          <div class="ride-actions">
+            <a href="/rides/message/<%= offer.memberId %>" class="btn btn-primary btn-sm flex-1" data-testid="button-message-driver-<%= offer.id %>">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+              Contact Driver
+            </a>
+          </div>
+        </div>
+        <% }); %>
+        <% } else { %>
+        <div class="empty-rides">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.8C1.4 11.3 1 12.1 1 13v3c0 .6.4 1 1 1h2"/>
+            <circle cx="7" cy="17" r="2"/>
+            <circle cx="17" cy="17" r="2"/>
+          </svg>
+          <p>No rides available for this meeting yet.</p>
+          <p class="text-sm mt-1">Check back later or submit a request above.</p>
+        </div>
+        <% } %>
+        
+        <!-- My Requests -->
+        <% if (typeof myRequests !== 'undefined' && myRequests.length > 0) { %>
+        <div class="my-rides-section">
+          <div class="section-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M8 12h8M12 8v8"/>
+            </svg>
+            My Ride Requests
+          </div>
+          <% myRequests.forEach(function(req) { %>
+          <div class="ride-card" data-testid="card-my-request-<%= req.id %>">
+            <div class="ride-card-header">
+              <div>
+                <span class="badge badge-secondary mb-1">My Request</span>
+                <div class="ride-meeting-name"><%= req.meetingTitle || 'Meeting' %></div>
+              </div>
+              <span class="badge <%= req.status === 'accepted' ? 'badge-success' : (req.status === 'declined' ? 'badge-danger' : 'badge-warning') %>"><%= req.status %></span>
+            </div>
+            <div class="ride-details">
+              <div class="ride-details-row">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+                <span>Pickup: <%= req.pickupArea %></span>
+              </div>
+              <% if (req.notes) { %>
+              <div class="ride-details-row">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                <span><%= req.notes %></span>
+              </div>
+              <% } %>
+            </div>
+            <div class="ride-actions">
+              <form method="POST" action="/rides/request/<%= req.id %>/cancel" style="margin-left: auto;">
+                <button type="submit" class="btn btn-ghost btn-sm text-danger" data-testid="button-cancel-request-<%= req.id %>">Cancel Request</button>
+              </form>
+            </div>
+          </div>
+          <% }); %>
+        </div>
+        <% } %>
+      </div>
+      
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Tab switching
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const tabId = this.dataset.tab;
+      
+      // Update tab buttons
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      
+      // Update tab content
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.getElementById('tab-' + tabId).classList.add('active');
+    });
+  });
+  
+  // Meeting filter change
+  function changeMeeting(meetingId) {
+    window.location.href = '/rides?meeting=' + meetingId;
+  }
+  
+  // Update destination field based on selected meeting
+  function updateDestination() {
+    const select = document.getElementById('meeting-filter');
+    if (select) {
+      const selectedOption = select.options[select.selectedIndex];
+      const location = selectedOption.dataset.location || 'Meeting venue';
+      const destField = document.getElementById('offer-destination');
+      if (destField) {
+        destField.value = location || 'Meeting venue';
+      }
+    }
+  }
+  
+  // Update hidden meeting IDs when filter changes
+  document.getElementById('meeting-filter')?.addEventListener('change', function() {
+    document.getElementById('offer-meeting-id').value = this.value;
+    document.getElementById('request-meeting-id').value = this.value;
+    updateDestination();
+  });
+  
+  // Initialize destination on load
+  updateDestination();
+</script>
+</body>
+</html>

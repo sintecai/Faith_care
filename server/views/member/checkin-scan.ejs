@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scan QR Code - HFNI Connect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <style>
+    .member-page.hfni-themed.member-page-bg {
+      background: url('/images/member-bg.jpg') center center / cover no-repeat fixed !important;
+      position: relative;
+      min-height: 100vh;
+    }
+    .member-page.hfni-themed.member-page-bg::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.35);
+      z-index: 0;
+      pointer-events: none;
+    }
+    .member-page.hfni-themed.member-page-bg .member-header,
+    .member-page.hfni-themed.member-page-bg .member-content {
+      position: relative;
+      z-index: 1;
+    }
+    .member-page.hfni-themed.member-page-bg .member-header {
+      background: transparent !important;
+    }
+    .member-page.hfni-themed.member-page-bg .member-header .member-logo {
+      color: #ffffff !important;
+    }
+    .member-page.hfni-themed.member-page-bg .member-header .member-name {
+      color: rgba(255, 255, 255, 0.9) !important;
+    }
+    .scan-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      max-width: 400px;
+      margin: 1rem auto;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+    }
+    #qr-reader {
+      width: 100%;
+      border-radius: 0.5rem;
+      overflow: hidden;
+    }
+    #qr-reader video {
+      border-radius: 0.5rem;
+    }
+    .scanner-status {
+      text-align: center;
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+    .scanner-status.scanning {
+      color: var(--primary);
+    }
+    .scanner-status.success {
+      color: var(--success);
+    }
+    .scanner-status.error {
+      color: var(--danger);
+    }
+    .permission-denied {
+      text-align: center;
+      padding: 2rem 1rem;
+    }
+    .permission-denied svg {
+      width: 64px;
+      height: 64px;
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+    }
+    .manual-entry {
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+    .code-input {
+      font-size: 1.25rem;
+      text-align: center;
+      letter-spacing: 0.2rem;
+      text-transform: uppercase;
+      font-family: monospace;
+      padding: 0.75rem;
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 0.875rem;
+      margin-bottom: 1rem;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+<div class="member-page hfni-themed member-page-bg">
+  <header class="member-header">
+    <div class="member-logo">HFNI Connect</div>
+    <div class="member-name"><%= typeof memberName !== 'undefined' ? memberName : '' %></div>
+  </header>
+  
+  <div class="member-content" style="padding: 1rem;">
+    <a href="/checkin" class="back-link" data-testid="link-back">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+      Back to Check-In
+    </a>
+    
+    <div class="scan-card">
+      <h2 class="text-xl font-semibold text-center mb-2">Scan QR Code</h2>
+      <p class="text-secondary text-center text-sm mb-4">Point your camera at the QR code displayed at the meeting</p>
+      
+      <div id="qr-reader"></div>
+      
+      <div id="scanner-status" class="scanner-status scanning">
+        Initializing camera...
+      </div>
+      
+      <div id="permission-denied" class="permission-denied" style="display: none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M1 1l22 22M21 21H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3l2-3h8l2 3h3a2 2 0 0 1 2 2v6"/>
+          <circle cx="12" cy="13" r="3"/>
+        </svg>
+        <h3 class="font-semibold mb-2">Camera Access Denied</h3>
+        <p class="text-secondary text-sm mb-4">Please allow camera access in your browser settings, or enter the code manually below.</p>
+      </div>
+      
+      <div class="manual-entry">
+        <p class="text-secondary text-center text-sm mb-3">Or enter the code manually:</p>
+        <form method="POST" action="/checkin" id="manualForm">
+          <div class="form-group">
+            <input 
+              type="text" 
+              id="code" 
+              name="code" 
+              class="form-control code-input" 
+              placeholder="XXXXXX"
+              maxlength="8"
+              autocomplete="off"
+              autocapitalize="characters"
+              required
+              data-testid="input-manual-code"
+            >
+          </div>
+          <button type="submit" class="btn btn-primary btn-block mt-3" data-testid="button-submit-code">
+            Submit Code
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('code').addEventListener('input', function(e) {
+  this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+});
+
+let html5QrCode;
+const statusEl = document.getElementById('scanner-status');
+const permissionDeniedEl = document.getElementById('permission-denied');
+const qrReaderEl = document.getElementById('qr-reader');
+
+function onScanSuccess(decodedText, decodedResult) {
+  statusEl.className = 'scanner-status success';
+  statusEl.textContent = 'Code found! Checking in...';
+  
+  if (html5QrCode) {
+    html5QrCode.stop().catch(console.error);
+  }
+  
+  const code = decodedText.trim().toUpperCase();
+  
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = '/checkin';
+  const input = document.createElement('input');
+  input.type = 'hidden';
+  input.name = 'code';
+  input.value = code;
+  form.appendChild(input);
+  document.body.appendChild(form);
+  form.submit();
+}
+
+function onScanFailure(error) {
+}
+
+function startScanner() {
+  html5QrCode = new Html5Qrcode("qr-reader");
+  
+  const config = {
+    fps: 10,
+    qrbox: { width: 250, height: 250 },
+    aspectRatio: 1.0
+  };
+  
+  html5QrCode.start(
+    { facingMode: "environment" },
+    config,
+    onScanSuccess,
+    onScanFailure
+  ).then(() => {
+    statusEl.className = 'scanner-status scanning';
+    statusEl.textContent = 'Scanning for QR code...';
+  }).catch((err) => {
+    console.error('Camera error:', err);
+    statusEl.style.display = 'none';
+    qrReaderEl.style.display = 'none';
+    permissionDeniedEl.style.display = 'block';
+  });
+}
+
+if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  startScanner();
+} else {
+  statusEl.style.display = 'none';
+  qrReaderEl.style.display = 'none';
+  permissionDeniedEl.style.display = 'block';
+  permissionDeniedEl.querySelector('h3').textContent = 'Camera Not Available';
+  permissionDeniedEl.querySelector('p').textContent = 'Your device does not support camera access. Please enter the code manually below.';
+}
+</script>
+</body>
+</html>

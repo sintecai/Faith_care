@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prayer Request - HFNI Connect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="member-page hfni-themed">
+  <!-- Mobile Navigation -->
+  <%- include('../partials/member-mobile-nav') %>
+  
+  <div class="member-header">
+    <div class="member-header-inner">
+      <!-- Mobile hamburger button -->
+      <button id="mobile-menu-btn" class="mobile-menu-btn" data-testid="button-mobile-menu" aria-label="Open menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      
+      <a href="/home" class="member-logo" data-testid="link-home"><%= typeof churchName !== 'undefined' ? churchName : 'HFNI Connect' %></a>
+      <div class="flex items-center gap-3">
+        <span class="text-sm text-secondary"><%= typeof memberName !== 'undefined' ? memberName : '' %></span>
+        <a href="/logout" class="btn btn-primary btn-sm desktop-only" data-testid="button-logout">Logout</a>
+      </div>
+    </div>
+  </div>
+  
+  <div class="member-content">
+    <div class="member-card">
+      <div class="card">
+        <div class="card-header">
+          <h2>Prayer Request</h2>
+        </div>
+        <div class="card-body">
+          <% if (typeof error !== 'undefined' && error) { %>
+            <div class="alert alert-error"><%= error %></div>
+          <% } %>
+          <% if (typeof success !== 'undefined' && success) { %>
+            <div class="alert alert-success"><%= success %></div>
+          <% } %>
+          
+          <form method="POST" action="/prayer-request">
+            <% if (typeof unitName !== 'undefined' && unitName) { %>
+            <div class="form-group">
+              <label class="form-label">Prayer Cell</label>
+              <input type="text" class="form-control" value="<%= unitName %>" disabled>
+            </div>
+            <% } %>
+            
+            <% if (typeof pastors !== 'undefined' && pastors.length > 1) { %>
+            <div class="form-group">
+              <label class="form-label" for="pastorId">Select Pastor</label>
+              <select id="pastorId" name="pastorId" class="form-control" data-testid="select-pastor">
+                <option value="">Choose a pastor...</option>
+                <% pastors.forEach(function(p) { %>
+                  <option value="<%= p.id %>"><%= p.name %></option>
+                <% }); %>
+              </select>
+            </div>
+            <% } else if (typeof pastors !== 'undefined' && pastors.length === 1) { %>
+              <input type="hidden" name="pastorId" value="<%= pastors[0].id %>">
+            <% } %>
+            
+            <div class="form-group">
+              <label class="form-label" for="requestText">Your Prayer Request</label>
+              <textarea 
+                id="requestText" 
+                name="requestText" 
+                class="form-control" 
+                placeholder="Share your prayer intention..."
+                required
+                data-testid="textarea-request"
+              ></textarea>
+            </div>
+            
+            <div class="flex gap-3">
+              <a href="/home" class="btn btn-secondary" data-testid="button-cancel">Cancel</a>
+              <button type="submit" class="btn btn-primary flex-1" data-testid="button-submit-prayer">
+                Submit Request
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

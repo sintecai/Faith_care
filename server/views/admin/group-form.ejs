@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= isEdit ? 'Edit' : 'Add' %> Ministry Group - HFNI Connect Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="admin-layout">
+  <%- include('./partials/sidebar', { currentPage: 'groups' }) %>
+  
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1 class="text-xl font-semibold"><%= isEdit ? 'Edit' : 'Add' %> Ministry Group</h1>
+      <div class="text-sm text-secondary"><%= typeof staffName !== 'undefined' ? staffName : 'Admin' %></div>
+    </header>
+    
+    <div class="admin-content">
+      <div class="card" style="max-width: 40rem;">
+        <div class="card-body">
+          <% if (typeof error !== 'undefined' && error) { %>
+            <div class="alert alert-error"><%= error %></div>
+          <% } %>
+          
+          <form method="POST" action="/admin/groups<%= isEdit ? '/' + group.id : '' %>">
+            <div class="form-group">
+              <label class="form-label" for="name">Group Name *</label>
+              <input 
+                type="text" 
+                id="name" 
+                name="name" 
+                class="form-control" 
+                placeholder="Enter group name"
+                value="<%= (typeof group !== 'undefined' && group) ? group.name : '' %>"
+                required
+                data-testid="input-name"
+              >
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label" for="description">Description</label>
+              <textarea 
+                id="description" 
+                name="description" 
+                class="form-control" 
+                placeholder="Enter description"
+                data-testid="textarea-description"
+              ><%= (typeof group !== 'undefined' && group && group.description) ? group.description : '' %></textarea>
+            </div>
+            
+            <div class="flex gap-3 mt-6">
+              <a href="/admin/groups" class="btn btn-secondary" data-testid="button-cancel">Cancel</a>
+              <button type="submit" class="btn btn-primary flex-1" data-testid="button-submit">
+                <%= isEdit ? 'Update' : 'Create' %> Group
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

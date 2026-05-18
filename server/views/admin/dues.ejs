@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dues Management - HFNI Connect Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="admin-layout">
+  <%- include('./partials/sidebar', { currentPage: 'dues' }) %>
+  
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1 class="text-xl font-semibold">Dues Management</h1>
+      <div class="text-sm text-secondary"><%= typeof staffName !== 'undefined' ? staffName : 'Admin' %></div>
+    </header>
+    
+    <div class="admin-content">
+      <% if (typeof message !== 'undefined' && message) { %>
+        <div class="alert alert-success"><%= message %></div>
+      <% } %>
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+      
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="card-title"><%= typeof currentMonth !== 'undefined' ? currentMonth : 'Current Month' %></h2>
+        </div>
+        <div class="card-body">
+          <div class="flex gap-4 flex-wrap mb-4">
+            <a href="/admin/dues?tab=families" class="btn <%= (typeof tab === 'undefined' || tab === 'families') ? 'btn-primary' : 'btn-outline' %>" data-testid="tab-families">
+              Families
+            </a>
+            <a href="/admin/dues?tab=individuals" class="btn <%= tab === 'individuals' ? 'btn-primary' : 'btn-outline' %>" data-testid="tab-individuals">
+              Individuals
+            </a>
+          </div>
+          <div class="flex gap-4 flex-wrap">
+            <a href="/admin/dues?tab=<%= typeof tab !== 'undefined' ? tab : 'families' %>&filter=all" class="btn <%= typeof filter === 'undefined' || filter === 'all' ? 'btn-secondary' : 'btn-outline' %>" data-testid="filter-all">
+              All (<%= typeof totalCount !== 'undefined' ? totalCount : 0 %>)
+            </a>
+            <a href="/admin/dues?tab=<%= typeof tab !== 'undefined' ? tab : 'families' %>&filter=paid" class="btn <%= filter === 'paid' ? 'btn-secondary' : 'btn-outline' %>" data-testid="filter-paid">
+              Paid (<%= typeof paidCount !== 'undefined' ? paidCount : 0 %>)
+            </a>
+            <a href="/admin/dues?tab=<%= typeof tab !== 'undefined' ? tab : 'families' %>&filter=unpaid" class="btn <%= filter === 'unpaid' ? 'btn-secondary' : 'btn-outline' %>" data-testid="filter-unpaid">
+              Unpaid (<%= typeof unpaidCount !== 'undefined' ? unpaidCount : 0 %>)
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <% if (typeof tab === 'undefined' || tab === 'families') { %>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Family</th>
+              <th>Due Amount</th>
+              <th>Next Due Date</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (typeof families === 'undefined' || families.length === 0) { %>
+              <tr><td colspan="5" class="text-center text-secondary py-8">No families found</td></tr>
+            <% } else { %>
+              <% families.forEach(function(f) { 
+                const dueDate = f.nextDueDate ? new Date(f.nextDueDate) : null;
+              %>
+              <tr data-testid="row-family-<%= f.id %>">
+                <td class="font-medium"><%= f.name %></td>
+                <td>£<%= f.dueAmount || '0.00' %></td>
+                <td><%= dueDate ? dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '-' %></td>
+                <td>
+                  <% if (f.isPaid) { %>
+                    <span class="badge badge-success" data-testid="status-paid-<%= f.id %>">Paid</span>
+                  <% } else { %>
+                    <span class="badge badge-danger" data-testid="status-unpaid-<%= f.id %>">Unpaid</span>
+                  <% } %>
+                </td>
+                <td>
+                  <% if (f.isPaid) { %>
+                    <form method="POST" action="/admin/dues/family/<%= f.id %>/mark-unpaid" style="display:inline;">
+                      <button type="submit" class="btn btn-outline btn-sm" data-testid="button-undo-paid-<%= f.id %>">Undo Paid</button>
+                    </form>
+                  <% } else { %>
+                    <form method="POST" action="/admin/dues/family/<%= f.id %>/mark-paid" style="display:inline;">
+                      <button type="submit" class="btn btn-success btn-sm" data-testid="button-mark-paid-<%= f.id %>">Mark Paid</button>
+                    </form>
+                  <% } %>
+                </td>
+              </tr>
+              <% }); %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+      <% } else { %>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Member</th>
+              <th>Phone</th>
+              <th>Due Amount</th>
+              <th>Frequency</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (typeof individuals === 'undefined' || individuals.length === 0) { %>
+              <tr><td colspan="6" class="text-center text-secondary py-8">No individual contributors found</td></tr>
+            <% } else { %>
+              <% individuals.forEach(function(m) { %>
+              <tr data-testid="row-member-<%= m.id %>">
+                <td class="font-medium"><%= m.firstName %> <%= m.lastName %></td>
+                <td><%= m.phone %></td>
+                <td>£<%= m.duesAmount || '0.00' %></td>
+                <td><%= m.duesFrequency || 'Monthly' %></td>
+                <td>
+                  <% if (m.isPaid) { %>
+                    <span class="badge badge-success" data-testid="status-paid-member-<%= m.id %>">Paid</span>
+                  <% } else { %>
+                    <span class="badge badge-danger" data-testid="status-unpaid-member-<%= m.id %>">Unpaid</span>
+                  <% } %>
+                </td>
+                <td>
+                  <% if (m.isPaid) { %>
+                    <form method="POST" action="/admin/dues/member/<%= m.id %>/mark-unpaid" style="display:inline;">
+                      <button type="submit" class="btn btn-outline btn-sm" data-testid="button-undo-paid-member-<%= m.id %>">Undo Paid</button>
+                    </form>
+                  <% } else { %>
+                    <form method="POST" action="/admin/dues/member/<%= m.id %>/mark-paid" style="display:inline;">
+                      <button type="submit" class="btn btn-success btn-sm" data-testid="button-mark-paid-member-<%= m.id %>">Mark Paid</button>
+                    </form>
+                  <% } %>
+                </td>
+              </tr>
+              <% }); %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+      <% } %>
+    </div>
+  </main>
+</div>
+</body>
+</html>

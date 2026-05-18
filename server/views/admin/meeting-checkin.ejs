@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meeting Check-In - HFNI Connect Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .checkin-code {
+      font-size: 3rem;
+      font-weight: 700;
+      letter-spacing: 0.5rem;
+      font-family: monospace;
+      background: var(--bg);
+      padding: 1.5rem 2rem;
+      border-radius: var(--radius);
+      display: inline-block;
+      margin: 1rem 0;
+    }
+    .countdown {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--primary);
+    }
+    .countdown.warning {
+      color: var(--warning);
+    }
+    .countdown.expired {
+      color: var(--danger);
+    }
+    .qr-large {
+      max-width: 280px;
+      margin: 1rem auto;
+    }
+    .qr-large img {
+      width: 100%;
+      height: auto;
+    }
+  </style>
+</head>
+<body>
+<div class="admin-layout">
+  <%- include('./partials/sidebar', { currentPage: 'events' }) %>
+  
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1 class="text-xl font-semibold">Meeting Check-In</h1>
+      <div class="text-sm text-secondary"><%= typeof staffName !== 'undefined' ? staffName : 'Admin' %></div>
+    </header>
+    
+    <div class="admin-content">
+      <div style="max-width: 40rem; margin: 0 auto;">
+        <div class="card">
+          <div class="card-header text-center">
+            <h2 class="text-xl"><%= event.title %></h2>
+            <p class="text-secondary mt-1">
+              <%= new Date(event.eventDate).toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) %>
+            </p>
+            <% if (event.location) { %>
+              <p class="text-secondary text-sm"><%= event.location %></p>
+            <% } %>
+          </div>
+          
+          <div class="card-body text-center">
+            <p class="text-secondary mb-2">Check-In Code:</p>
+            <div class="checkin-code" data-testid="text-checkin-code"><%= checkInCode %></div>
+            
+            <p class="text-sm text-secondary mb-4">Members enter this code or scan the QR below</p>
+            
+            <div class="qr-large">
+              <img src="<%= qrCodeUrl %>" alt="QR Code for check-in" data-testid="img-qr-code">
+            </div>
+            
+            <div class="mt-6 p-4" style="background: var(--bg); border-radius: var(--radius);">
+              <p class="text-sm text-secondary mb-2">Time Remaining:</p>
+              <div class="countdown" id="countdown" data-expires="<%= expiresAt %>">
+                Loading...
+              </div>
+              <p class="text-xs text-secondary mt-2">Check-in expires 2 hours after start</p>
+            </div>
+          </div>
+          
+          <div class="card-footer">
+            <div class="flex justify-between gap-4 flex-wrap">
+              <a href="/admin/events" class="btn btn-secondary" data-testid="button-back">Back to Meetings</a>
+              <a href="/admin/events/<%= event.id %>/attendance" class="btn btn-ghost" data-testid="button-view-attendance">View Attendance</a>
+            </div>
+            <form method="POST" action="/admin/events/<%= event.id %>/end-checkin" class="mt-4">
+              <button type="submit" class="btn btn-danger btn-block" data-testid="button-end-checkin">End Check-In Now</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+(function() {
+  const countdownEl = document.getElementById('countdown');
+  const expiresAt = new Date(countdownEl.dataset.expires).getTime();
+  
+  function updateCountdown() {
+    const now = Date.now();
+    const diff = expiresAt - now;
+    
+    if (diff <= 0) {
+      countdownEl.textContent = 'EXPIRED';
+      countdownEl.classList.add('expired');
+      return;
+    }
+    
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+    
+    countdownEl.textContent = `${hours}h ${minutes}m ${seconds}s`;
+    
+    if (diff < 15 * 60 * 1000) {
+      countdownEl.classList.add('warning');
+    }
+    
+    setTimeout(updateCountdown, 1000);
+  }
+  
+  updateCountdown();
+})();
+</script>
+</body>
+</html>

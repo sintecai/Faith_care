@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carpooling Details - HFNI Connect Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="admin-layout">
+  <%- include('./partials/sidebar', { currentPage: 'carpooling' }) %>
+  
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1 class="text-xl font-semibold">Rides: <%= meeting.title %></h1>
+      <div class="text-sm text-secondary"><%= typeof staffName !== 'undefined' ? staffName : 'Admin' %></div>
+    </header>
+    
+    <div class="admin-content">
+      <div class="mb-6">
+        <a href="/admin/carpooling" class="btn btn-secondary btn-sm" data-testid="button-back">Back to Meetings</a>
+      </div>
+      
+      <% if (typeof message !== 'undefined' && message) { %>
+        <div class="alert alert-success"><%= message %></div>
+      <% } %>
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+      
+      <div class="card mb-4">
+        <div class="card-body">
+          <p><strong>Date:</strong> <%= meeting.eventDate ? new Date(meeting.eventDate).toLocaleDateString() : 'Not specified' %></p>
+          <p><strong>Location:</strong> <%= meeting.location || 'Not specified' %></p>
+        </div>
+      </div>
+      
+      <div class="rides-grid">
+        <div>
+          <h3 class="text-lg font-medium mb-4">Ride Offers (<%= offers.length %>)</h3>
+          <% if (offers.length === 0) { %>
+            <p class="text-secondary">No ride offers yet</p>
+          <% } else { %>
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Driver</th>
+                    <th>Pickup Area</th>
+                    <th>Seats</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% offers.forEach(function(o) { %>
+                  <tr data-testid="row-offer-<%= o.id %>">
+                    <td><%= o.memberName %></td>
+                    <td><%= o.pickupArea || '-' %></td>
+                    <td><%= o.seatsAvailable %></td>
+                    <td><span class="badge <%= o.status === 'available' ? 'badge-success' : 'badge-default' %>"><%= o.status %></span></td>
+                  </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+          <% } %>
+        </div>
+        
+        <div>
+          <h3 class="text-lg font-medium mb-4">Ride Requests (<%= requests.length %>)</h3>
+          <% if (requests.length === 0) { %>
+            <p class="text-secondary">No ride requests yet</p>
+          <% } else { %>
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Requester</th>
+                    <th>Pickup Area</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% requests.forEach(function(r) { %>
+                  <tr data-testid="row-request-<%= r.id %>">
+                    <td><%= r.requesterName %></td>
+                    <td><%= r.pickupArea || '-' %></td>
+                    <td><span class="badge <%= r.status === 'pending' ? 'badge-warning' : r.status === 'matched' ? 'badge-success' : 'badge-default' %>"><%= r.status %></span></td>
+                  </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<style>.rides-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; } @media (max-width: 768px) { .rides-grid { grid-template-columns: 1fr; } }</style>
+</body>
+</html>

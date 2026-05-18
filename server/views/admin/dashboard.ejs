@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - HFNI Connect Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    /* Admin Dashboard background - scoped to this page only */
+    .admin-dashboard-bg {
+      position: relative;
+      min-height: 100vh;
+      background-image: url('/images/admin-bg.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    /* Dark overlay using ::before */
+    .admin-dashboard-bg::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.25);
+      z-index: 0;
+      pointer-events: none;
+    }
+    /* Content above overlay */
+    .admin-dashboard-bg .admin-header,
+    .admin-dashboard-bg .admin-content {
+      position: relative;
+      z-index: 1;
+    }
+    /* Dashboard heading - white with shadow */
+    .admin-dashboard-bg .admin-header h1 {
+      color: #ffffff !important;
+      font-weight: 700;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+    }
+    .admin-dashboard-bg .admin-header .text-secondary {
+      color: rgba(255, 255, 255, 0.9) !important;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+    }
+    /* Cards remain white */
+    .admin-dashboard-bg .stat-card,
+    .admin-dashboard-bg .card {
+      background: #ffffff !important;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18) !important;
+    }
+    /* Mobile: disable fixed for performance */
+    @media (max-width: 768px) {
+      .admin-dashboard-bg {
+        background-attachment: scroll;
+      }
+    }
+    /* Mobile responsive fixes for bottom cards */
+    .dashboard-bottom-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+    @media (max-width: 640px) {
+      .dashboard-bottom-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+    }
+    /* Prevent card overflow */
+    .dashboard-bottom-grid .card {
+      min-width: 0;
+      overflow: hidden;
+    }
+    .dashboard-bottom-grid .card h3 {
+      white-space: normal;
+      word-break: break-word;
+    }
+    /* Flex items wrap on mobile */
+    .dashboard-flex-wrap {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .dashboard-flex-wrap > div {
+      flex: 1 1 auto;
+      min-width: 60px;
+    }
+    @media (max-width: 480px) {
+      .dashboard-flex-wrap {
+        gap: 0.5rem;
+      }
+      .dashboard-flex-wrap > div {
+        padding: 0.75rem !important;
+      }
+      .dashboard-flex-wrap .text-2xl {
+        font-size: 1.25rem;
+      }
+      .dashboard-flex-wrap .text-sm {
+        font-size: 0.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="admin-layout">
+  <%- include('./partials/sidebar', { currentPage: 'dashboard' }) %>
+  
+  <main class="admin-main admin-dashboard-bg">
+    <header class="admin-header">
+      <h1 class="text-xl font-semibold">Dashboard</h1>
+      <div class="text-sm text-secondary"><%= typeof staffName !== 'undefined' ? staffName : 'Admin' %></div>
+    </header>
+    
+    <div class="admin-content">
+      <div class="stats-grid mb-8">
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-card-label">Total Members</span>
+            <div class="stat-card-icon" style="background: rgba(37, 99, 235, 0.1); color: var(--primary);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+              </svg>
+            </div>
+          </div>
+          <div class="stat-card-value" data-testid="stat-total-members"><%= typeof totalMembers !== 'undefined' ? totalMembers : 0 %></div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-card-label">Active Members</span>
+            <div class="stat-card-icon" style="background: rgba(22, 163, 74, 0.1); color: var(--success);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+              </svg>
+            </div>
+          </div>
+          <div class="stat-card-value" data-testid="stat-active-members"><%= typeof activeMembers !== 'undefined' ? activeMembers : 0 %></div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-card-label">Latest Attendance</span>
+            <div class="stat-card-icon" style="background: rgba(245, 158, 11, 0.1); color: var(--warning);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+              </svg>
+            </div>
+          </div>
+          <div class="stat-card-value" data-testid="stat-attendance"><%= typeof latestAttendance !== 'undefined' ? latestAttendance : 0 %></div>
+          <div class="stat-card-footer"><%= typeof attendancePercent !== 'undefined' ? attendancePercent : 0 %>% of active members</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <span class="stat-card-label">Prayer Requests</span>
+            <div class="stat-card-icon" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              </svg>
+            </div>
+          </div>
+          <div class="stat-card-value" data-testid="stat-new-prayers"><%= typeof prayerCounts !== 'undefined' ? prayerCounts.new : 0 %></div>
+          <div class="stat-card-footer">New requests pending</div>
+        </div>
+        
+        <% if (typeof celebrationCount !== 'undefined' && celebrationCount > 0) { %>
+        <a href="/admin/celebrations" class="stat-card" style="text-decoration: none; cursor: pointer;" data-testid="card-celebrations">
+          <div class="stat-card-header">
+            <span class="stat-card-label">Today's Celebrations</span>
+            <div class="stat-card-icon" style="background: rgba(236, 72, 153, 0.1); color: #ec4899;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="stat-card-value" data-testid="stat-celebrations"><%= celebrationCount %></div>
+          <div class="stat-card-footer">Birthdays &amp; anniversaries</div>
+        </a>
+        <% } %>
+      </div>
+      
+      <div class="dashboard-bottom-grid">
+        <div class="card">
+          <div class="card-header flex justify-between items-center gap-4 flex-wrap">
+            <h3>Prayer Request Summary</h3>
+          </div>
+          <div class="card-body">
+            <div class="dashboard-flex-wrap">
+              <div class="flex-1 text-center p-4" style="background: rgba(37, 99, 235, 0.05); border-radius: var(--radius);">
+                <div class="text-2xl font-semibold" style="color: var(--primary);"><%= typeof prayerCounts !== 'undefined' ? prayerCounts.new : 0 %></div>
+                <div class="text-sm text-secondary">New</div>
+              </div>
+              <div class="flex-1 text-center p-4" style="background: rgba(245, 158, 11, 0.05); border-radius: var(--radius);">
+                <div class="text-2xl font-semibold" style="color: var(--warning);"><%= typeof prayerCounts !== 'undefined' ? prayerCounts.accepted : 0 %></div>
+                <div class="text-sm text-secondary">Accepted</div>
+              </div>
+              <div class="flex-1 text-center p-4" style="background: rgba(22, 163, 74, 0.05); border-radius: var(--radius);">
+                <div class="text-2xl font-semibold" style="color: var(--success);"><%= typeof prayerCounts !== 'undefined' ? prayerCounts.closed : 0 %></div>
+                <div class="text-sm text-secondary">Closed</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="card-header flex justify-between items-center gap-4 flex-wrap">
+            <h3>Dues Overview</h3>
+          </div>
+          <div class="card-body">
+            <div class="dashboard-flex-wrap">
+              <div class="flex-1 text-center p-4" style="background: rgba(245, 158, 11, 0.05); border-radius: var(--radius);">
+                <div class="text-2xl font-semibold" style="color: var(--warning);"><%= typeof duesSoon !== 'undefined' ? duesSoon : 0 %></div>
+                <div class="text-sm text-secondary">Due in 7 days</div>
+              </div>
+              <div class="flex-1 text-center p-4" style="background: rgba(220, 38, 38, 0.05); border-radius: var(--radius);">
+                <div class="text-2xl font-semibold" style="color: var(--danger);"><%= typeof duesOverdue !== 'undefined' ? duesOverdue : 0 %></div>
+                <div class="text-sm text-secondary">Overdue</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<% if (typeof celebrationCount !== 'undefined' && celebrationCount > 0) { %>
+<div id="celebration-toast" style="display: none; position: fixed; top: 1.5rem; right: 1.5rem; z-index: 1000; background: #ffffff; border-radius: var(--radius); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); padding: 1rem 1.5rem; max-width: 20rem; border-left: 4px solid #ec4899;">
+  <div style="display: flex; align-items: center; gap: 0.75rem;">
+    <div style="background: rgba(236, 72, 153, 0.1); color: #ec4899; border-radius: 50%; padding: 0.5rem;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+      </svg>
+    </div>
+    <div style="flex: 1;">
+      <div style="font-weight: 600; margin-bottom: 0.25rem;"><%= celebrationCount %> celebration<%= celebrationCount !== 1 ? 's' : '' %> today!</div>
+      <div style="font-size: 0.875rem; color: var(--secondary-foreground);">Birthdays and anniversaries</div>
+    </div>
+    <button onclick="dismissToast()" style="background: none; border: none; cursor: pointer; padding: 0.25rem; opacity: 0.5;" data-testid="button-dismiss-toast">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+  <a href="/admin/celebrations" class="btn btn-primary btn-sm mt-3" style="width: 100%;" data-testid="button-view-celebrations">View Celebrations</a>
+</div>
+
+<script>
+  (function() {
+    var today = new Date().toISOString().split('T')[0];
+    var lastShown = localStorage.getItem('celebration_toast_shown');
+    
+    if (lastShown !== today) {
+      var toast = document.getElementById('celebration-toast');
+      if (toast) {
+        toast.style.display = 'block';
+        localStorage.setItem('celebration_toast_shown', today);
+      }
+    }
+  })();
+  
+  function dismissToast() {
+    var toast = document.getElementById('celebration-toast');
+    if (toast) {
+      toast.style.display = 'none';
+    }
+  }
+</script>
+<% } %>
+</body>
+</html>

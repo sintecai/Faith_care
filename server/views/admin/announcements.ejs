@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Announcements - HFNI Connect Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="admin-layout">
+  <%- include('./partials/sidebar', { currentPage: 'announcements' }) %>
+  
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1 class="text-xl font-semibold">Announcements</h1>
+      <div class="text-sm text-secondary"><%= typeof staffName !== 'undefined' ? staffName : 'Admin' %></div>
+    </header>
+    
+    <div class="admin-content">
+      <div class="flex justify-between items-center gap-4 mb-6">
+        <div></div>
+        <a href="/admin/announcements/new" class="btn btn-primary" data-testid="button-add-announcement">New Announcement</a>
+      </div>
+      
+      <% if (typeof message !== 'undefined' && message) { %>
+        <div class="alert alert-success"><%= message %></div>
+      <% } %>
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+      
+      <% if (typeof announcements === 'undefined' || announcements.length === 0) { %>
+        <div class="empty-state">
+          <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+          </svg>
+          <p>No announcements yet</p>
+          <a href="/admin/announcements/new" class="btn btn-primary mt-4">Create First Announcement</a>
+        </div>
+      <% } else { %>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Priority</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% announcements.forEach(function(a) { %>
+              <tr data-testid="row-announcement-<%= a.id %>">
+                <td><%= a.title %></td>
+                <td><span class="badge <%= a.priority === 'urgent' ? 'badge-danger' : 'badge-default' %>"><%= a.priority %></span></td>
+                <td><%= a.createdAt ? new Date(a.createdAt).toLocaleDateString() : '-' %></td>
+                <td>
+                  <div class="flex gap-2">
+                    <a href="/admin/announcements/<%= a.id %>/edit" class="btn btn-secondary btn-sm" data-testid="button-edit-<%= a.id %>">Edit</a>
+                    <form method="POST" action="/admin/announcements/<%= a.id %>/delete" onsubmit="return confirm('Delete this announcement?');">
+                      <button type="submit" class="btn btn-danger btn-sm" data-testid="button-delete-<%= a.id %>">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </main>
+</div>
+</body>
+</html>

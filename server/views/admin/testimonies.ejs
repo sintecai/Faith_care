@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Testimonies - HFNI Connect Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="admin-layout">
+  <%- include('./partials/sidebar', { currentPage: 'testimonies' }) %>
+  
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1 class="text-xl font-semibold">Testimonies</h1>
+      <div class="text-sm text-secondary"><%= typeof staffName !== 'undefined' ? staffName : 'Admin' %></div>
+    </header>
+    
+    <div class="admin-content">
+      <div class="flex justify-between items-center gap-4 mb-6">
+        <div class="flex gap-2">
+          <a href="/admin/testimonies" class="btn <%= currentStatus === 'all' ? 'btn-primary' : 'btn-secondary' %> btn-sm">All</a>
+          <a href="/admin/testimonies?status=pending" class="btn <%= currentStatus === 'pending' ? 'btn-primary' : 'btn-secondary' %> btn-sm">Pending</a>
+          <a href="/admin/testimonies?status=approved" class="btn <%= currentStatus === 'approved' ? 'btn-primary' : 'btn-secondary' %> btn-sm">Approved</a>
+        </div>
+      </div>
+      
+      <% if (typeof message !== 'undefined' && message) { %>
+        <div class="alert alert-success"><%= message %></div>
+      <% } %>
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+      
+      <% if (typeof testimonies === 'undefined' || testimonies.length === 0) { %>
+        <div class="empty-state">
+          <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          <p>No testimonies found</p>
+        </div>
+      <% } else { %>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% testimonies.forEach(function(t) { %>
+              <tr data-testid="row-testimony-<%= t.id %>">
+                <td><%= t.title %></td>
+                <td>
+                  <span class="badge <%= t.status === 'approved' ? 'badge-success' : t.status === 'rejected' ? 'badge-danger' : 'badge-warning' %>"><%= t.status %></span>
+                </td>
+                <td><%= t.createdAt ? new Date(t.createdAt).toLocaleDateString() : '-' %></td>
+                <td>
+                  <div class="flex gap-2 flex-wrap">
+                    <% if (t.status === 'pending') { %>
+                      <form method="POST" action="/admin/testimonies/<%= t.id %>/approve" style="display:inline;">
+                        <button type="submit" class="btn btn-success btn-sm" data-testid="button-approve-<%= t.id %>">Approve</button>
+                      </form>
+                      <form method="POST" action="/admin/testimonies/<%= t.id %>/reject" style="display:inline;">
+                        <button type="submit" class="btn btn-secondary btn-sm" data-testid="button-reject-<%= t.id %>">Reject</button>
+                      </form>
+                    <% } %>
+                    <form method="POST" action="/admin/testimonies/<%= t.id %>/delete" onsubmit="return confirm('Delete this testimony?');">
+                      <button type="submit" class="btn btn-danger btn-sm" data-testid="button-delete-<%= t.id %>">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </main>
+</div>
+</body>
+</html>

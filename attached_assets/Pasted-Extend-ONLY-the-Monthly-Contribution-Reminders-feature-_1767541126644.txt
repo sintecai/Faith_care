@@ -1,0 +1,55 @@
+Extend ONLY the Monthly Contribution Reminders feature by adding predefined polite reminder message templates. Do not change paid/unpaid logic.
+
+Hard rules:
+- Do NOT change DB schema.
+- Do NOT redesign UI.
+- Touch ONLY:
+  (1) reminder templates definition (static array or DB seed),
+  (2) dues reminder page dropdown population.
+
+Task:
+Add 10–15 polite, caring reminder message templates suitable for church communication.
+
+Tone:
+- Respectful
+- Non-judgmental
+- Pastoral / caring
+- Clear but gentle
+
+Use placeholders:
+{{name}} = member first name
+{{family}} = family name
+{{amount}} = dues amount (optional)
+{{month}} = current month name
+
+Templates (use these or very close variants):
+
+1. "Hi {{name}}, this is a gentle reminder that {{family}}’s monthly contribution for {{month}} is pending. If already paid, please ignore. Thank you."
+2. "Hello {{name}}, just a friendly reminder about the monthly contribution for {{family}}. Please let us know if you need any assistance."
+3. "Dear {{name}}, we’re sending a gentle reminder regarding {{family}}’s contribution for {{month}}. Thank you for your continued support."
+4. "Hi {{name}}, a quick reminder about {{family}}’s monthly contribution. We truly appreciate your support."
+5. "Hello {{name}}, hope you are doing well. This is a kind reminder about the monthly contribution for {{family}}."
+6. "Dear {{name}}, just a small reminder regarding {{family}}’s contribution for this month. Thank you and God bless."
+7. "Hi {{name}}, we wanted to gently remind you about the monthly contribution for {{family}}. Please ignore if already settled."
+8. "Hello {{name}}, a friendly reminder that {{family}}’s contribution for {{month}} is pending. Thank you for your generosity."
+9. "Dear {{name}}, sending a gentle reminder about {{family}}’s monthly contribution. We appreciate your support."
+10. "Hi {{name}}, just checking in with a reminder about {{family}}’s contribution for this month."
+11. "Hello {{name}}, hope all is well. This is a gentle reminder about the monthly contribution for {{family}}."
+12. "Dear {{name}}, thank you for being part of our community. A kind reminder about {{family}}’s contribution for {{month}}."
+13. "Hi {{name}}, a small reminder regarding the monthly contribution for {{family}}. Thank you for your support."
+14. "Hello {{name}}, this is a friendly reminder about {{family}}’s monthly contribution. Please let us know if you have any concerns."
+15. "Dear {{name}}, we appreciate your commitment. Just a gentle reminder about {{family}}’s contribution for {{month}}."
+
+UI:
+- Populate these templates in the existing reminder message dropdown.
+- Show first ~60 characters as preview.
+- Default-select the first template.
+
+Acceptance:
+- Admin sees 10–15 reminder templates in dropdown.
+- Selected template is used when sending reminders.
+- No other behavior changes.
+
+After completion, output:
+- Where templates are defined (file name)
+- Files changed

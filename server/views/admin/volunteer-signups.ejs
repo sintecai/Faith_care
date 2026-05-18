@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Volunteer Signups - HFNI Connect Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="admin-layout">
+  <%- include('./partials/sidebar', { currentPage: 'volunteer' }) %>
+  
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1 class="text-xl font-semibold">Signups: <%= request.title %></h1>
+      <div class="text-sm text-secondary"><%= typeof staffName !== 'undefined' ? staffName : 'Admin' %></div>
+    </header>
+    
+    <div class="admin-content">
+      <div class="mb-6">
+        <a href="/admin/volunteer" class="btn btn-secondary btn-sm" data-testid="button-back">Back to Volunteer Board</a>
+      </div>
+      
+      <% if (typeof message !== 'undefined' && message) { %>
+        <div class="alert alert-success"><%= message %></div>
+      <% } %>
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+      
+      <div class="card mb-4">
+        <div class="card-body">
+          <p><strong>Event Date:</strong> <%= request.eventDate ? new Date(request.eventDate).toLocaleDateString() : 'Not specified' %></p>
+          <p><strong>Location:</strong> <%= request.location || 'Not specified' %></p>
+          <p><strong>Volunteers Needed:</strong> <%= request.requiredVolunteers %></p>
+          <p><strong>Status:</strong> <span class="badge <%= request.status === 'open' ? 'badge-success' : 'badge-default' %>"><%= request.status %></span></p>
+          <% if (request.description) { %>
+            <p class="mt-2"><strong>Description:</strong> <%= request.description %></p>
+          <% } %>
+        </div>
+      </div>
+      
+      <h3 class="text-lg font-medium mb-4">Signups (<%= signups.length %>)</h3>
+      
+      <% if (signups.length === 0) { %>
+        <div class="empty-state">
+          <p>No one has signed up yet</p>
+        </div>
+      <% } else { %>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Member</th>
+                <th>Role</th>
+                <th>Note</th>
+                <th>Signed Up</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% signups.forEach(function(s) { %>
+              <tr data-testid="row-signup-<%= s.id %>">
+                <td><%= s.memberName %></td>
+                <td><%= s.role || '-' %></td>
+                <td><%= s.note || '-' %></td>
+                <td><%= s.createdAt ? new Date(s.createdAt).toLocaleDateString() : '-' %></td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </main>
+</div>
+</body>
+</html>

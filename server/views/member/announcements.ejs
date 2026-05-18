@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Announcements - HFNI Connect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="member-page hfni-themed">
+  <!-- Mobile Navigation -->
+  <%- include('../partials/member-mobile-nav') %>
+  
+  <div class="member-header">
+    <div class="member-header-inner">
+      <!-- Mobile hamburger button -->
+      <button id="mobile-menu-btn" class="mobile-menu-btn" data-testid="button-mobile-menu" aria-label="Open menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      
+      <a href="/home" class="member-logo" data-testid="link-home">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Back
+      </a>
+      <span class="member-title">Announcements</span>
+      <div class="flex items-center gap-3">
+        <a href="/logout" class="btn btn-primary btn-sm desktop-only" data-testid="button-logout">Logout</a>
+      </div>
+    </div>
+  </div>
+  
+  <div class="member-content">
+    <div class="member-dashboard">
+      <% if (typeof announcements !== 'undefined' && announcements.length > 0) { %>
+        <% const urgentAnnouncements = announcements.filter(a => a.isUrgent); %>
+        <% const regularAnnouncements = announcements.filter(a => !a.isUrgent); %>
+        
+        <% if (urgentAnnouncements.length > 0) { %>
+          <div class="mb-6">
+            <h2 class="text-lg font-semibold mb-3">Urgent Announcements</h2>
+            <% urgentAnnouncements.forEach(function(announcement) { %>
+              <div class="card mb-4 urgent-card" data-testid="announcement-urgent-<%= announcement.id %>">
+                <div class="card-body">
+                  <div class="flex justify-between items-start gap-2 mb-2">
+                    <h3 class="font-medium"><%= announcement.title %></h3>
+                    <span class="badge badge-danger">Urgent</span>
+                  </div>
+                  <p class="text-secondary mb-2"><%= announcement.content %></p>
+                  <div class="text-sm text-muted">
+                    <% if (announcement.publishDate) { %>
+                      Posted: <%= new Date(announcement.publishDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) %>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+            <% }); %>
+          </div>
+        <% } %>
+        
+        <% if (regularAnnouncements.length > 0) { %>
+          <h2 class="text-lg font-semibold mb-3">All Announcements</h2>
+          <% regularAnnouncements.forEach(function(announcement) { %>
+            <div class="card mb-4" data-testid="announcement-<%= announcement.id %>">
+              <div class="card-body">
+                <h3 class="font-medium mb-2"><%= announcement.title %></h3>
+                <p class="text-secondary mb-2"><%= announcement.content %></p>
+                <div class="text-sm text-muted">
+                  <% if (announcement.publishDate) { %>
+                    Posted: <%= new Date(announcement.publishDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) %>
+                  <% } %>
+                </div>
+              </div>
+            </div>
+          <% }); %>
+        <% } %>
+      <% } else { %>
+        <div class="empty-state">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mb-4">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          <h3>No Announcements</h3>
+          <p class="text-secondary">There are no announcements at this time.</p>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,132 @@
+Implement Option C (reduce SMS cost) in the current HFNI Connect app with MINIMAL changes. Keep OTP login working. Stop using SMS for care messages + due reminders; use in-app notifications instead. Add ability for members to reply inside the app (message receipt / inbox).
+
+========================
+HARD RULES (LOW USAGE)
+========================
+- Do NOT refactor unrelated modules.
+- Do NOT redesign the whole UI.
+- Keep all existing routes working.
+- Use existing DB + add only minimal new tables/columns if required.
+- Do NOT remove Twilio OTP login. Only reduce how often it’s needed.
+- Scope everything by church_id.
+- Touch only: auth/session config, in-app notifications, messaging inbox pages, and the specific “send care/dues reminders” actions.
+
+==================================================
+1) OPTION C CORE: REDUCE OTP COST (LONG SESSIONS)
+==================================================
+Goal: Once a member logs in successfully with OTP, keep them logged in for a long time so OTP is not required frequently.
+
+Requirements:
+- Increase member session lifetime to 60–90 days (configurable).
+- Use secure HTTPOnly cookies.
+- Add “Remember me” checkbox on login (optional). If checked => 90 days, else => 7 days.
+- Ensure logout clears session.
+- Add rate limits/cooldowns for OTP:
+  - Prevent resend OTP within 60 seconds
+  - Max 3 OTP sends per 10 minutes per phone (simple in-memory or DB log)
+
+Acceptance:
+- User stays logged in after closing browser and coming back later (within the session period).
+- OTP is not requested every visit.
+
+==================================================
+2) IN-APP NOTIFICATIONS FOR CARE MESSAGES + DUES REMINDERS
+==================================================
+Goal: Replace SMS sending for:
+- attendance absentees care messages
+- monthly dues reminders
+with in-app notifications (not SMS). Keep the admin workflow the same (admin clicks send/queue).
+
+Requirements:
+A) Notification storage
+- Use existing notifications table if present.
+- If not present, create minimal:
+  notifications(notification_id uuid pk, church_id uuid, member_id uuid nullable, family_id uuid nullable,
+                title text, body text, type text, created_at timestamptz, created_by_staff_id uuid nullable)
+  notification_reads(notification_id, member_id, read_at)
+
+B) Attendance “care messages”
+- When admin queues/sends follow-up for absentees:
+  - Create notifications for each absentee member (type='care_followup')
+  - Mark as unread by default
+  - Show on member Notifications page
+- Do NOT send SMS for these
+
+C) Dues reminders
+- When admin sends reminders:
+  - If reminder target is family contact phone previously, now target should be:
+    - family primary_member_id (if exists) OR
+    - first eligible family member (active + consent) as the in-app recipient
+  - For bachelors/individual payers: notify the member directly
+  - Create notification type='dues_reminder'
+- Do NOT send SMS for dues reminders
+
+D) Member UI
+- Add/ensure member pages:
+  - /member/notifications : list unread + read, filter tabs
+  - show badge count (unread) on member dashboard tile
+
+Acceptance:
+- Care messages appear as in-app notifications for absentees.
+- Dues reminders appear as in-app notifications for unpaid recipients.
+- No SMS is sent for these two categories.
+
+==================================================
+3) MESSAGE RECEIPT + REPLIES INSIDE THE APP (INBOX)
+==================================================
+Goal: Members must be able to reply to care messages/announcements/reminders inside the app, and admin can view replies.
+
+Implement minimal “Messages” module:
+A) Database
+Create minimal tables if missing:
+- conversations(conversation_id uuid pk, church_id uuid, subject text, created_at, created_by_staff_id uuid nullable, member_id uuid nullable, family_id uuid nullable, status text default 'open')
+- messages(message_id uuid pk, church_id uuid, conversation_id uuid, sender_type text ('admin'|'member'),
+          sender_member_id uuid nullable, body text, created_at timestamptz)
+
+B) Linking notifications -> conversation (receipt)
+- When creating a care message notification or dues reminder notification, also create (or reuse) a conversation for that member and set notification.conversation_id (add column if needed).
+- Member can open notification -> see conversation thread -> reply.
+
+C) Member UI
+- Add tile “Messages” on member dashboard.
+- /member/messages : list conversations, unread indicator (optional)
+- /member/messages/:id : thread view + reply box
+- Posting reply inserts into messages with sender_type='member'
+
+D) Admin UI
+- /admin/messages : list conversations (open/closed), search by member/family
+- /admin/messages/:id : view thread and reply as admin
+- Admin reply inserts messages sender_type='admin'
+
+E) Minimal notifications integration
+- When member sends a reply, optionally create an in-app notification for admin OR show in admin dashboard “unread replies” count (simple).
+
+Acceptance:
+- Member receives a care/dues notification and can click it to open the message thread and reply.
+- Admin can read replies and respond.
+- Conversation persists and is scoped by church_id.
+
+==================================================
+4) ANNOUNCEMENTS DELIVERY (COST SAVING)
+==================================================
+Do NOT auto-send announcements by SMS. Instead:
+- When admin posts/publishes an announcement, create an in-app notification for all active members (type='announcement').
+- Members see it under notifications.
+
+(Keep SMS announcement broadcast feature disabled or optional toggle OFF by default.)
+
+Acceptance:
+- Posting an announcement creates in-app notifications for members.
+
+==================================================
+DELIVERABLES
+==================================================
+After implementing, output:
+- Files changed
+- Any DB migration SQL added
+- URLs to test:
+  /member/notifications
+  /member/messages
+  /admin/messages
+- Confirm: care messages + dues reminders are now in-app (no SMS)
+- Confirm: long sessions (60–90 days) work

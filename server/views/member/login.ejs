@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - HFNI Connect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .login-tabs {
+      display: flex;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 1.5rem;
+    }
+    .login-tab {
+      flex: 1;
+      padding: 0.75rem;
+      text-align: center;
+      cursor: pointer;
+      color: var(--text-secondary);
+      font-weight: 500;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.2s;
+    }
+    .login-tab:hover {
+      color: var(--text-primary);
+    }
+    .login-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+    .login-panel {
+      display: none;
+    }
+    .login-panel.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+<div class="login-hero">
+  <div class="login-card">
+    <div class="login-card-header">
+      <img src="/assets/logo/heavenly-feast.png" alt="Heavenly Feast Logo" class="login-logo">
+      <h1>HFNI Connect</h1>
+      <p>Sign in with your phone number</p>
+    </div>
+    <div class="login-card-body">
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+      <% if (typeof message !== 'undefined' && message) { %>
+        <div class="alert alert-info"><%= message %></div>
+      <% } %>
+      
+      <% if (typeof otpEnabled !== 'undefined' && otpEnabled) { %>
+        <div class="login-tabs">
+          <div class="login-tab active" data-tab="password" data-testid="tab-password">Password</div>
+          <div class="login-tab" data-tab="otp" data-testid="tab-otp">SMS Code</div>
+        </div>
+      <% } %>
+      
+      <div id="password-panel" class="login-panel active">
+        <form id="password-login-form">
+          <% if (typeof eventId !== 'undefined' && eventId) { %>
+            <input type="hidden" name="eventId" value="<%= eventId %>">
+          <% } %>
+          <% if (typeof token !== 'undefined' && token) { %>
+            <input type="hidden" name="token" value="<%= token %>">
+          <% } %>
+          
+          <div class="form-group">
+            <label class="form-label" for="phone-password">Phone Number</label>
+            <input 
+              type="tel" 
+              id="phone-password" 
+              name="phone" 
+              class="form-control" 
+              placeholder="+44 7XXXXXXXXX"
+              required
+              autofocus
+              data-testid="input-phone-password"
+            >
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="password">Password</label>
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              class="form-control" 
+              placeholder="Enter your password"
+              required
+              data-testid="input-password"
+            >
+          </div>
+          
+          <div id="password-error" class="alert alert-error" style="display: none;"></div>
+          
+          <button type="submit" class="btn btn-primary btn-lg btn-block" data-testid="button-password-login">
+            Sign In
+          </button>
+        </form>
+      </div>
+      
+      <% if (typeof otpEnabled !== 'undefined' && otpEnabled) { %>
+      <div id="otp-panel" class="login-panel">
+        <form method="POST" action="/login">
+          <% if (typeof eventId !== 'undefined' && eventId) { %>
+            <input type="hidden" name="eventId" value="<%= eventId %>">
+          <% } %>
+          <% if (typeof token !== 'undefined' && token) { %>
+            <input type="hidden" name="token" value="<%= token %>">
+          <% } %>
+          
+          <div class="form-group">
+            <label class="form-label" for="phone">Phone Number</label>
+            <input 
+              type="tel" 
+              id="phone" 
+              name="phone" 
+              class="form-control" 
+              placeholder="+44 7XXXXXXXXX"
+              required
+              data-testid="input-phone"
+            >
+            <p class="form-hint">We'll send a verification code via SMS</p>
+          </div>
+          
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" name="rememberMe" value="1" checked data-testid="checkbox-remember-me">
+              <span>Keep me signed in for 90 days</span>
+            </label>
+          </div>
+          
+          <button type="submit" class="btn btn-primary btn-lg btn-block" data-testid="button-send-otp">
+            Send Code
+          </button>
+        </form>
+      </div>
+      <% } %>
+      
+      <div class="text-center mt-6 pt-4" style="border-top: 1px solid var(--border);">
+        <a href="/admin/login" class="text-sm text-secondary" data-testid="link-admin-login">Admin Login</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Tab switching
+  document.querySelectorAll('.login-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.login-panel').forEach(p => p.classList.remove('active'));
+      
+      this.classList.add('active');
+      const panelId = this.dataset.tab + '-panel';
+      document.getElementById(panelId).classList.add('active');
+    });
+  });
+  
+  // Password login form
+  document.getElementById('password-login-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const errorDiv = document.getElementById('password-error');
+    const submitBtn = this.querySelector('button[type="submit"]');
+    
+    const phone = document.getElementById('phone-password').value;
+    const password = document.getElementById('password').value;
+    
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Signing in...';
+    errorDiv.style.display = 'none';
+    
+    try {
+      const res = await fetch('/auth/password-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, password })
+      });
+      
+      const data = await res.json();
+      
+      if (data.ok) {
+        window.location.href = data.redirect || '/home';
+      } else {
+        errorDiv.textContent = data.message || 'Login failed';
+        errorDiv.style.display = 'block';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Sign In';
+      }
+    } catch (err) {
+      errorDiv.textContent = 'Network error. Please try again.';
+      errorDiv.style.display = 'block';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Sign In';
+    }
+  });
+</script>
+</body>
+</html>

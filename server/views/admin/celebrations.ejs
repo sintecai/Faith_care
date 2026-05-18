@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Today's Celebrations - HFNI Connect Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="admin-layout">
+  <%- include('./partials/sidebar', { currentPage: 'celebrations' }) %>
+  
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1 class="text-xl font-semibold">Today's Celebrations</h1>
+      <div class="text-sm text-secondary"><%= typeof staffName !== 'undefined' ? staffName : 'Admin' %></div>
+    </header>
+    
+    <div class="admin-content">
+      <div class="mb-4">
+        <p class="text-secondary">Showing birthdays and anniversaries for <%= todayFormatted %></p>
+      </div>
+      
+      <% const totalCount = (typeof birthdays !== 'undefined' ? birthdays.length : 0) + (typeof anniversaries !== 'undefined' ? anniversaries.length : 0); %>
+      
+      <% if (totalCount === 0) { %>
+        <div class="card">
+          <div class="card-body text-center py-8">
+            <svg class="mx-auto mb-3" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity: 0.5;">
+              <path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+            </svg>
+            <p class="text-secondary">No celebrations today</p>
+          </div>
+        </div>
+      <% } else { %>
+        <div class="grid gap-6" style="grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));">
+          <% if (typeof birthdays !== 'undefined' && birthdays.length > 0) { %>
+          <div class="card">
+            <div class="card-header flex justify-between items-center gap-4 flex-wrap">
+              <h3>
+                <svg class="inline-block mr-2" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <path d="M12 3v3M9 7l3-1 3 1M12 7v4"/>
+                  <rect x="6" y="11" width="12" height="10" rx="2"/>
+                </svg>
+                Birthdays (<%= birthdays.length %>)
+              </h3>
+            </div>
+            <div class="card-body">
+              <div class="space-y-3">
+                <% birthdays.forEach(function(member) { %>
+                  <div class="flex items-center justify-between p-3" style="background: rgba(37, 99, 235, 0.05); border-radius: var(--radius);">
+                    <div>
+                      <div class="font-medium"><%= member.firstName %> <%= member.lastName %></div>
+                      <div class="text-sm text-secondary"><%= member.phone %></div>
+                      <% if (member.dateOfBirth) { %>
+                        <% 
+                          const dob = new Date(member.dateOfBirth);
+                          const londonNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/London' }));
+                          const age = londonNow.getFullYear() - dob.getFullYear();
+                        %>
+                        <div class="text-xs text-secondary mt-1">Turning <%= age %> today</div>
+                      <% } %>
+                    </div>
+                    <div class="flex gap-2">
+                      <a href="/admin/messages?memberId=<%= member.id %>&template=birthday" class="btn btn-primary btn-sm" data-testid="button-birthday-message-<%= member.id %>">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        Send Message
+                      </a>
+                    </div>
+                  </div>
+                <% }); %>
+              </div>
+            </div>
+          </div>
+          <% } %>
+          
+          <% if (typeof anniversaries !== 'undefined' && anniversaries.length > 0) { %>
+          <div class="card">
+            <div class="card-header flex justify-between items-center gap-4 flex-wrap">
+              <h3>
+                <svg class="inline-block mr-2" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+                Wedding Anniversaries (<%= anniversaries.length %>)
+              </h3>
+            </div>
+            <div class="card-body">
+              <div class="space-y-3">
+                <% anniversaries.forEach(function(member) { %>
+                  <div class="flex items-center justify-between p-3" style="background: rgba(220, 38, 38, 0.05); border-radius: var(--radius);">
+                    <div>
+                      <div class="font-medium"><%= member.firstName %> <%= member.lastName %></div>
+                      <div class="text-sm text-secondary"><%= member.phone %></div>
+                      <% if (member.weddingAnniversary) { %>
+                        <% 
+                          const anniv = new Date(member.weddingAnniversary);
+                          const londonNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/London' }));
+                          const years = londonNow.getFullYear() - anniv.getFullYear();
+                        %>
+                        <div class="text-xs text-secondary mt-1"><%= years %> year<%= years !== 1 ? 's' : '' %> married</div>
+                      <% } %>
+                    </div>
+                    <div class="flex gap-2">
+                      <a href="/admin/messages?memberId=<%= member.id %>&template=anniversary" class="btn btn-primary btn-sm" data-testid="button-anniversary-message-<%= member.id %>">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        Send Message
+                      </a>
+                    </div>
+                  </div>
+                <% }); %>
+              </div>
+            </div>
+          </div>
+          <% } %>
+        </div>
+      <% } %>
+    </div>
+  </main>
+</div>
+</body>
+</html>

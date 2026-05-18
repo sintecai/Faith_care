@@ -1,0 +1,36 @@
+You are my Replit Agent. I need you to resolve ALL database migration “conflict” prompts during Publishing in the safest way, keeping production data intact and ensuring the production schema matches the current DEV schema.
+
+Context:
+- App: Faith Care / HFNI Connect (Express + Postgres/Replit DB)
+- OTP is required for member initial login and should KEEP working.
+- The publishing UI keeps asking whether to rename/move tables (often suggesting otp_codes -> some new table) or create new tables/columns.
+- I want decisions that avoid data loss and avoid breaking OTP/auth.
+
+Rules you MUST follow when choosing migration conflict options:
+1) NEVER rename/move otp_codes into any other table. otp_codes must remain its own table used for OTP.
+2) If the conflict prompt asks “Is <new_table> created or renamed from another table?” always choose:
+   ✅ “Create new '<new_table>' table”
+   and NEVER choose rename/move from otp_codes or any existing table.
+3) Do NOT drop otp_codes. If a generated migration wants to DROP otp_codes:
+   - Stop and fix the schema/migration so otp_codes remains in the schema,
+   - OR migrate otp_codes to a new structure only if you also update code accordingly.
+   Default is: KEEP otp_codes table and keep it used by login.
+4) Apply safe additive migrations only:
+   - Creating new tables is OK.
+   - Adding new columns is OK.
+   - Avoid dropping tables/columns and avoid destructive changes unless absolutely required.
+5) Ensure production schema ends up identical to DEV schema AFTER applying migrations (tables, columns, constraints).
+6) After resolving schema, ensure API endpoints work in production:
+   - /health should return ok
+   - /api/auth/me should respond (not “Cannot GET”)
+   - /login should work end-to-end.
+
+Deliverables:
+A) Tell me exactly which options you selected for each conflict screen.
+B) If any destructive migration is proposed (DROP TABLE / DROP COLUMN), explain why and propose a non-destructive alternative first.
+C) Ensure production deploy commands are correct so the server routes are available (not just static):
+   - Build command: npm run build
+   - Run command: npm run start:prod
+   - Confirm start:prod exists and runs the Express server.
+
+Proceed now and resolve the publishing conflicts so I can publish successfully with no database breakage.

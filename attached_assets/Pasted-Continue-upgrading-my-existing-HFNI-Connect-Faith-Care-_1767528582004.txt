@@ -1,0 +1,109 @@
+Continue upgrading my existing HFNI Connect (Faith Care) app. The initial large prompt is STILL valid — do not undo prior work. Fix the following missing/unfinished items and make all listed modules WORK end-to-end (admin + member where required) using the existing database structure/tables already created in the project.
+
+========================
+1) TEXT + FIELD LABEL FIXES (ADMIN + MEMBER)
+========================
+- Replace every UI label “Unit/Units” with “Prayer Cell/Prayer Cells” across:
+  - Members -> Add Member / Edit Member forms
+  - Families -> Add Family / Edit Family forms
+  - Member profile / any dropdowns
+- Replace “Pastors” with “Pastor” everywhere in UI.
+
+========================
+2) MEMBERS MODULE: ADD ADDRESS + IMPROVE FORMS
+========================
+Current issue: member/family forms do not include address properly.
+Tasks:
+- Members table already supports address (or add if missing).
+- Update Admin -> Members:
+  - Add Member form must include:
+    first_name, last_name, phone, email (optional), Prayer Cell dropdown, address (text area), active toggle, consent flags (if present).
+  - Edit Member page must allow updating the same fields.
+- Ensure Prayer Cell dropdown pulls ONLY active prayer cells for the church.
+
+========================
+3) FAMILIES MODULE: EXPAND FAMILY DETAILS + ADD FAMILY MEMBERS
+========================
+Current issue: Add Family only has Family Name, Next Due Date, Due Amount.
+Required:
+- Update Admin -> Families -> Add/Edit forms to include:
+  - family_name (required)
+  - address (required/optional based on existing schema)
+  - Prayer Cell dropdown (required)
+  - dues_amount
+  - dues_frequency (monthly/quarterly/annual)
+  - next_due_date
+  - dues_notes (optional)
+- Add ability to link members into a family from the Family screen:
+  - Show a “Family Members” section:
+    - Add existing members to family (multi-select or search+add)
+    - Capture role_in_family (head/spouse/child/other)
+    - Allow removing a member from family (delete from family_members join table)
+    - Allow choosing primary_member_id (family contact)
+- If the DB schema currently lacks any of these family fields, add them via safe migrations (do not drop tables).
+
+Business rules:
+- When a member is assigned to a family, write to family_members table.
+- One family can have multiple members.
+- Primary member is optional but recommended.
+- All queries must be scoped by church_id.
+
+========================
+4) MINISTRY GROUPS + FEATURE MODULES: MAKE THEM WORK
+========================
+These modules exist in UI but are NOT working now. Fix routes, controllers, DB queries, and views so they work without errors:
+
+Admin must have working pages + CRUD where applicable:
+- Elders & Ministers (as a ministry group/category)
+- TNT
+- Jesus School
+- Core Leaders
+- Announcements (CRUD)
+- Notifications (Create + list + mark sent; in-app notifications minimum)
+- Gallery (Add items + list; URL-based upload is OK)
+- Testimonies (Member submit + Admin approve/reject + list)
+- Volunteer Board (Admin create requests + member sign-up + admin view signups)
+- Carpooling / Ride Sharing (Offer ride + request ride; tied to Meetings)
+
+Fix any “Cannot GET” routes, broken links, missing templates, or server errors.
+
+========================
+5) MEMBER VISIBILITY REQUIREMENTS (VERY IMPORTANT)
+========================
+Members MUST be able to view these in their member area (not only admin):
+- Announcements (list + view detail; show urgent at top)
+- Notifications (in-app notification list; unread indicator if possible)
+- Gallery (grid list; open detail)
+- Testimonies (view approved; optionally submit new testimony)
+Also ensure these member features work:
+- Volunteer Board: members can see open volunteer requests and sign up
+- Carpooling: members can view rides for a meeting and offer/request rides
+
+Add member navigation/tiles so these appear on the member dashboard (similar style to admin cards):
+- Meetings
+- Prayer Request (existing)
+- Mark Attendance (existing)
+- Announcements
+- Notifications
+- Gallery
+- Testimonies
+- Volunteer Board
+- Carpooling
+
+Keep UI consistent and improved (spacing, icons, cards). Do not break existing attendance + prayer request flows.
+
+========================
+6) DATA SCOPING + DEFAULT CHURCH
+========================
+- Ensure the app consistently uses the correct church_id for all CRUD actions.
+- If the app currently uses a “default church”, keep it, but do not mix data across churches.
+
+========================
+7) DELIVERABLES / FINAL CHECK
+========================
+After implementing, provide:
+- List of fixed routes/URLs for each module (admin + member)
+- Any DB migration SQL added (safe additions only)
+- Confirm that each module loads and basic create/list actions work
+
+Do NOT remove any existing features. Continue from the existing codebase and make everything listed above fully functional.

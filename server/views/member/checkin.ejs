@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Check In - HFNI Connect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .member-page.hfni-themed.member-page-bg {
+      background: url('/images/member-bg.jpg') center center / cover no-repeat fixed !important;
+      position: relative;
+      min-height: 100vh;
+    }
+    .member-page.hfni-themed.member-page-bg::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.35);
+      z-index: 0;
+      pointer-events: none;
+    }
+    .member-page.hfni-themed.member-page-bg .member-header,
+    .member-page.hfni-themed.member-page-bg .member-content {
+      position: relative;
+      z-index: 1;
+    }
+    .member-page.hfni-themed.member-page-bg .member-header {
+      background: transparent !important;
+    }
+    .member-page.hfni-themed.member-page-bg .member-header .member-logo {
+      color: #ffffff !important;
+    }
+    .member-page.hfni-themed.member-page-bg .member-header .member-name {
+      color: rgba(255, 255, 255, 0.9) !important;
+    }
+    .checkin-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 1rem;
+      padding: 2rem;
+      max-width: 400px;
+      margin: 2rem auto;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+    }
+    .code-input {
+      font-size: 1.5rem;
+      text-align: center;
+      letter-spacing: 0.3rem;
+      text-transform: uppercase;
+      font-family: monospace;
+      padding: 1rem;
+    }
+    .divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 1.5rem 0;
+      color: var(--text-secondary);
+    }
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid var(--border);
+    }
+    .divider span {
+      padding: 0 1rem;
+      font-size: 0.875rem;
+    }
+  </style>
+</head>
+<body>
+<div class="member-page hfni-themed member-page-bg">
+  <header class="member-header">
+    <div class="member-logo">HFNI Connect</div>
+    <div class="member-name"><%= typeof memberName !== 'undefined' ? memberName : '' %></div>
+  </header>
+  
+  <div class="member-content" style="padding: 1rem;">
+    <div class="checkin-card">
+      <h2 class="text-xl font-semibold text-center mb-2">Meeting Check-In</h2>
+      <p class="text-secondary text-center text-sm mb-6">Enter the check-in code shown at the meeting</p>
+      
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-error mb-4"><%= error %></div>
+      <% } %>
+      <% if (typeof message !== 'undefined' && message) { %>
+        <div class="alert alert-success mb-4"><%= message %></div>
+      <% } %>
+      
+      <form method="POST" action="/checkin" id="checkinForm">
+        <div class="form-group">
+          <label for="code">Check-In Code</label>
+          <input 
+            type="text" 
+            id="code" 
+            name="code" 
+            class="form-control code-input" 
+            placeholder="XXXXXX"
+            maxlength="8"
+            autocomplete="off"
+            autocapitalize="characters"
+            required
+            data-testid="input-checkin-code"
+          >
+        </div>
+        
+        <button type="submit" class="btn btn-primary btn-block mt-4" data-testid="button-checkin">
+          Check In
+        </button>
+      </form>
+      
+      <div class="divider"><span>or</span></div>
+      
+      <a href="/checkin/scan" class="btn btn-secondary btn-block" data-testid="button-scan-qr">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.5rem;">
+          <rect x="3" y="3" width="7" height="7"/>
+          <rect x="14" y="3" width="7" height="7"/>
+          <rect x="3" y="14" width="7" height="7"/>
+          <rect x="14" y="14" width="7" height="7"/>
+        </svg>
+        Scan QR Code
+      </a>
+      
+      <div class="text-center mt-6">
+        <a href="/home" class="text-primary text-sm" data-testid="link-back">Back to Home</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('code').addEventListener('input', function(e) {
+  this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+});
+</script>
+</body>
+</html>
